@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-0: #0f1217;
+  --bg-1: #151a21;
+  --surface: #1b222c;
+  --surface-elev: #232c38;
+  --text-primary: #eaf0f8;
+  --text-muted: #9aa7b7;
+  --brand-primary: #4c7dff;
+  --brand-secondary: #ff7a45;
+  --semantic-call: #5b8cff;
+  --semantic-mutation: #ff8f5a;
+  --semantic-loop: #2fbf8f;
+  --semantic-error: #e45454;
+  --semantic-reference: #8f7cff;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+  background: radial-gradient(1000px 460px at 8% -10%, rgba(76, 125, 255, 0.22), transparent 60%),
+    radial-gradient(900px 420px at 92% -8%, rgba(255, 122, 69, 0.16), transparent 58%),
+    linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 72%);
+}
+
+body {
+  font-family: 'Instrument Sans', 'Geist', system-ui, sans-serif;
+  color: var(--text-primary);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.atlas-surface {
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(35, 44, 56, 0.58) 0%, rgba(27, 34, 44, 0.86) 100%);
+  border: 1px solid rgba(154, 167, 183, 0.2);
+  box-shadow: var(--edge-light), 0 18px 50px rgba(6, 10, 18, 0.34);
+}
+
+.atlas-elevated {
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(154, 167, 183, 0.23);
+  background: linear-gradient(180deg, rgba(35, 44, 56, 0.7) 0%, rgba(27, 34, 44, 0.9) 100%);
+  box-shadow: var(--edge-light), 0 10px 26px rgba(7, 12, 20, 0.24);
+}
+
+.atlas-active-line {
+  border-left: 2px solid rgba(76, 125, 255, 0.95);
+  background: linear-gradient(90deg, rgba(76, 125, 255, 0.2), rgba(76, 125, 255, 0.01));
+}
+
+.atlas-mutated-line {
+  border-left: 2px solid rgba(255, 143, 90, 0.95);
+  background: linear-gradient(90deg, rgba(255, 143, 90, 0.2), rgba(255, 143, 90, 0.02));
+}
+
+.atlas-error-line {
+  border-left: 2px solid rgba(228, 84, 84, 0.95);
+  background: linear-gradient(90deg, rgba(228, 84, 84, 0.22), rgba(228, 84, 84, 0.01));
+}
+
+.atlas-ghost-line {
+  background: linear-gradient(90deg, rgba(154, 167, 183, 0.18), rgba(154, 167, 183, 0.01));
+}
+
+.atlas-ast-line {
+  border-left: 2px solid rgba(143, 124, 255, 0.95);
+  background: linear-gradient(90deg, rgba(143, 124, 255, 0.2), rgba(143, 124, 255, 0.02));
+}
+
+.atlas-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(154, 167, 183, 0.5) transparent;
+}
+
+.atlas-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.atlas-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(154, 167, 183, 0.45);
+  border-radius: 999px;
+}
+
+.atlas-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
