@@ -154,7 +154,7 @@ const AtlasAstScene = ({
               transition={motionTokens.microSpring}
               className="rounded-lg border border-atlas-brand/30 bg-atlas-brand/12 px-3 py-1.5 text-xs"
             >
-              {activeMeta.type} • {activeMeta.range}
+              {activeMeta.type} ï¿½ {activeMeta.range}
             </motion.div>
           ) : null}
         </div>

@@ -81,7 +81,7 @@ const AtlasScopeScene = ({ currentStep }) => {
               </div>
               <p className="mt-1 text-[10px] text-atlas-muted">
                 created {scope.createdAtStep}
-                {scope.destroyedAtStep != null ? ` • destroyed ${scope.destroyedAtStep}` : ''}
+                {scope.destroyedAtStep != null ? ` ï¿½ destroyed ${scope.destroyedAtStep}` : ''}
               </p>
             </div>
           ))}
