@@ -716,6 +716,295 @@ y = temp;
 std::cout << x << std::endl;
 std::cout << y << std::endl;`,
   },
+  {
+    id: 'js-stack-ds',
+    language: 'javascript',
+    label: 'Stack (Push & Pop)',
+    subtitle: 'LIFO data structure operations',
+    category: 'stacks-queues',
+    code: `let stack = [];
+stack.push(10);
+stack.push(20);
+stack.push(30);
+
+let topItem = stack[stack.length - 1];
+let popped = stack.pop();
+
+console.log(topItem);
+console.log(popped);
+console.log(stack.length);`,
+  },
+  {
+    id: 'js-queue-ds',
+    language: 'javascript',
+    label: 'Queue (Enqueue & Dequeue)',
+    subtitle: 'FIFO data structure operations',
+    category: 'stacks-queues',
+    code: `let queue = [];
+queue.push("Task1");
+queue.push("Task2");
+queue.push("Task3");
+
+let first = queue.shift();
+let second = queue.shift();
+
+console.log(first);
+console.log(queue.length);`,
+  },
+  {
+    id: 'js-merge-sort',
+    language: 'javascript',
+    label: 'Merge Sort',
+    subtitle: 'O(N log N) divide & conquer sorting',
+    category: 'sorting',
+    code: `function merge(left, right) {
+  let result = [];
+  let i = 0;
+  let j = 0;
+  while (i < left.length && j < right.length) {
+    if (left[i] <= right[j]) {
+      result.push(left[i]);
+      i = i + 1;
+    } else {
+      result.push(right[j]);
+      j = j + 1;
+    }
+  }
+  while (i < left.length) {
+    result.push(left[i]);
+    i = i + 1;
+  }
+  while (j < right.length) {
+    result.push(right[j]);
+    j = j + 1;
+  }
+  return result;
+}
+
+function mergeSort(arr) {
+  if (arr.length <= 1) {
+    return arr;
+  }
+  let mid = Math.floor(arr.length / 2);
+  let left = arr.slice(0, mid);
+  let right = arr.slice(mid);
+  return merge(mergeSort(left), mergeSort(right));
+}
+
+let numbers = [38, 27, 43, 3, 9, 82, 10];
+let sorted = mergeSort(numbers);
+console.log(sorted[0]);
+console.log(sorted[6]);`,
+  },
+  {
+    id: 'js-quick-sort',
+    language: 'javascript',
+    label: 'Quick Sort',
+    subtitle: 'pivot partition & recursive sorting',
+    category: 'sorting',
+    code: `function quickSort(arr) {
+  if (arr.length <= 1) {
+    return arr;
+  }
+  let pivot = arr[arr.length - 1];
+  let left = [];
+  let right = [];
+  for (let i = 0; i < arr.length - 1; i = i + 1) {
+    if (arr[i] < pivot) {
+      left.push(arr[i]);
+    } else {
+      right.push(arr[i]);
+    }
+  }
+  let sortedLeft = quickSort(left);
+  let sortedRight = quickSort(right);
+  return sortedLeft.concat([pivot], sortedRight);
+}
+
+let numbers = [10, 80, 30, 90, 40, 50, 70];
+let sorted = quickSort(numbers);
+console.log(sorted[0]);
+console.log(sorted[6]);`,
+  },
+  {
+    id: 'js-insertion-sort',
+    language: 'javascript',
+    label: 'Insertion Sort',
+    subtitle: 'in-place shift & insert sorting',
+    category: 'sorting',
+    code: `let arr = [12, 11, 13, 5, 6];
+let n = arr.length;
+
+for (let i = 1; i < n; i = i + 1) {
+  let key = arr[i];
+  let j = i - 1;
+  while (j >= 0 && arr[j] > key) {
+    arr[j + 1] = arr[j];
+    j = j - 1;
+  }
+  arr[j + 1] = key;
+}
+
+console.log(arr[0]);
+console.log(arr[4]);`,
+  },
+  {
+    id: 'js-reverse-linked-list',
+    language: 'javascript',
+    label: 'Reverse Linked List',
+    subtitle: 'in-place pointer reversal',
+    category: 'linked-lists-trees',
+    code: `let n3 = { value: 30, next: null };
+let n2 = { value: 20, next: n3 };
+let head = { value: 10, next: n2 };
+
+let prev = null;
+let curr = head;
+
+while (curr !== null) {
+  let nextNode = curr.next;
+  curr.next = prev;
+  prev = curr;
+  curr = nextNode;
+}
+
+let newHead = prev;
+console.log(newHead.value);
+console.log(newHead.next.value);`,
+  },
+  {
+    id: 'js-bst-insert',
+    language: 'javascript',
+    label: 'Binary Search Tree Insert',
+    subtitle: 'recursive tree node insertion',
+    category: 'linked-lists-trees',
+    code: `function insert(root, val) {
+  if (root === null) {
+    return { value: val, left: null, right: null };
+  }
+  if (val < root.value) {
+    root.left = insert(root.left, val);
+  } else {
+    root.right = insert(root.right, val);
+  }
+  return root;
+}
+
+let bst = insert(null, 50);
+bst = insert(bst, 30);
+bst = insert(bst, 70);
+bst = insert(bst, 20);
+
+console.log(bst.value);
+console.log(bst.left.value);
+console.log(bst.left.left.value);`,
+  },
+  {
+    id: 'js-graph-bfs',
+    language: 'javascript',
+    label: 'Graph BFS Traversal',
+    subtitle: 'queue-based breadth first walk',
+    category: 'recursion-graphs',
+    code: `let graph = {
+  0: [1, 2],
+  1: [2],
+  2: [0, 3],
+  3: [3]
+};
+
+let visited = [false, false, false, false];
+let queue = [2];
+visited[2] = true;
+let count = 0;
+
+while (queue.length > 0) {
+  let node = queue.shift();
+  count = count + 1;
+  let neighbors = graph[node];
+  for (let i = 0; i < neighbors.length; i = i + 1) {
+    let neighbor = neighbors[i];
+    if (!visited[neighbor]) {
+      visited[neighbor] = true;
+      queue.push(neighbor);
+    }
+  }
+}
+
+console.log(count);`,
+  },
+  {
+    id: 'py-stack-ds',
+    language: 'python',
+    label: 'Python Stack Operations',
+    subtitle: 'append & pop list stack',
+    category: 'stacks-queues',
+    code: `stack = []
+stack.append(10)
+stack.append(20)
+stack.append(30)
+
+top_item = stack[len(stack) - 1]
+popped = stack.pop()
+
+print(top_item)
+print(popped)`,
+  },
+  {
+    id: 'py-merge-sort',
+    language: 'python',
+    label: 'Python Merge Sort',
+    subtitle: 'recursive list divide and conquer',
+    category: 'sorting',
+    code: `def merge_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    mid = len(arr) // 2
+    left = merge_sort(arr[:mid])
+    right = merge_sort(arr[mid:])
+    
+    result = []
+    i = 0
+    j = 0
+    while i < len(left) and j < len(right):
+        if left[i] <= right[j]:
+            result.append(left[i])
+            i = i + 1
+        else:
+            result.append(right[j])
+            j = j + 1
+    while i < len(left):
+        result.append(left[i])
+        i = i + 1
+    while j < len(right):
+        result.append(right[j])
+        j = j + 1
+    return result
+
+numbers = [38, 27, 43, 3, 9]
+sorted_nums = merge_sort(numbers)
+print(sorted_nums[0])
+print(sorted_nums[4])`,
+  },
+  {
+    id: 'java-stack-ds',
+    language: 'java',
+    label: 'Java Stack Simulation',
+    subtitle: 'array pointer stack push/pop',
+    category: 'stacks-queues',
+    code: `int[] stack = new int[5];
+int top = -1;
+
+top = top + 1;
+stack[top] = 10;
+top = top + 1;
+stack[top] = 20;
+
+int topValue = stack[top];
+top = top - 1;
+
+System.out.println(topValue);
+System.out.println(top + 1);`,
+  },
 ]
 
 export const compareExamplePair = {

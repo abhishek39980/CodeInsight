@@ -206,15 +206,41 @@ const AtlasCommandRail = ({
         <div className="rounded-lg border border-atlas-muted/25 bg-atlas-surface/60 px-2 py-1">
           <span className="mr-2 text-[11px] text-atlas-muted">Example</span>
           <select
-            className="max-w-56 rounded-md border border-atlas-muted/25 bg-atlas-surface px-2 py-1 text-xs text-atlas-text outline-none"
+            className="max-w-64 rounded-md border border-atlas-muted/25 bg-atlas-surface px-2 py-1 text-xs text-atlas-text outline-none"
             value={selectedExample}
             onChange={(event) => onLoadExample(event.target.value)}
           >
-            {examples.map((example) => (
-              <option key={example.id} value={example.id}>
-                {example.label}
-              </option>
-            ))}
+            {Object.entries(
+              examples.reduce((acc, example) => {
+                const cat = example.category || 'other'
+                if (!acc[cat]) acc[cat] = []
+                acc[cat].push(example)
+                return acc
+              }, {})
+            ).map(([catKey, catExamples]) => {
+              const catLabelMap = {
+                'stacks-queues': '🥞 Stacks & Queues',
+                'sorting': '🔀 Sorting Algorithms',
+                'algorithms': '⚡ Searching & Math',
+                'linked-lists-trees': '🔗 Linked Lists & Trees',
+                'recursion-graphs': '🌐 Graphs & Traversal',
+                'recursion': '🔁 Recursion',
+                'structures': '🏗️ Data Structures',
+                'loops': '🔄 Loops & Iteration',
+                'objects': '📦 Objects & Maps',
+                'references': '🔗 Pointers & Swaps',
+              }
+              const groupLabel = catLabelMap[catKey] || catKey.toUpperCase()
+              return (
+                <optgroup key={catKey} label={groupLabel}>
+                  {catExamples.map((example) => (
+                    <option key={example.id} value={example.id}>
+                      {example.label}
+                    </option>
+                  ))}
+                </optgroup>
+              )
+            })}
           </select>
         </div>
       </div>

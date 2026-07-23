@@ -214,6 +214,34 @@ function App() {
     return () => window.clearInterval(timer)
   }, [findStepByDirection, isRunning, speed, steps])
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const activeTag = document.activeElement?.tagName
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag) || document.activeElement?.classList.contains('inputarea')) {
+        return
+      }
+
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault()
+        setIsRunning((prev) => !prev)
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        handleStep()
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        handleStepBack()
+      } else if (e.key === 'r' || e.key === 'R') {
+        if (!e.ctrlKey && !e.metaKey) {
+          e.preventDefault()
+          handleReset()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleStep, handleStepBack, isRunning])
+
   const selectedEntityId = selection?.entityId || null
 
   const selectedLifecycleIndices = useMemo(() => {

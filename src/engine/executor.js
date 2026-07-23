@@ -169,7 +169,18 @@ const readMember = (runtime, objectRef, property, line, node = null) => {
   }
 
   const nodeData = runtime.getHeapNode(objectRef)
-  const raw = Array.isArray(nodeData.value) ? nodeData.value[Number(property)] : nodeData.value[property]
+  let raw
+  if (Array.isArray(nodeData.value)) {
+    if (property === 'length') {
+      raw = nodeData.value.length
+    } else if (!Number.isNaN(Number(property))) {
+      raw = nodeData.value[Number(property)]
+    } else {
+      raw = nodeData.value[property]
+    }
+  } else {
+    raw = nodeData.value[property]
+  }
 
   runtime.recordAccess({
     refId: nodeData.id,
@@ -257,40 +268,82 @@ const applyArrayMutation = (runtime, objectRef, method, args, line, node = null)
   }
 
   let result
-  runtime.mutateHeap(objectRef, (target) => {
-    const array = target.value
-    if (method === 'push') {
-      result = array.push(...args)
-    } else if (method === 'pop') {
-      result = array.pop()
-    } else if (method === 'shift') {
-      result = array.shift()
-    } else if (method === 'unshift') {
-      result = array.unshift(...args)
-    }
-  })
+  if (['push', 'pop', 'shift', 'unshift'].includes(method)) {
+    runtime.mutateHeap(objectRef, (target) => {
+      const array = target.value
+      if (method === 'push') {
+        result = array.push(...args)
+      } else if (method === 'pop') {
+        result = array.pop()
+      } else if (method === 'shift') {
+        result = array.shift()
+      } else if (method === 'unshift') {
+        result = array.unshift(...args)
+      }
+    })
 
-  runtime.trackCollectionOperation(objectRef, method, {
-    line,
-    args: args.map((item) => valueToText(serializeValue(item))),
-  })
+    runtime.trackCollectionOperation(objectRef, method, {
+      line,
+      args: args.map((item) => valueToText(serializeValue(item))),
+    })
 
-  runtime.addUpdate({
-    kind: 'heap-mutate',
-    key: `heap:${heapNode.id}`,
-    refId: heapNode.id,
-    path: method,
-    reason: `Array ${method} invoked`,
-  })
+    runtime.addUpdate({
+      kind: 'heap-mutate',
+      key: `heap:${heapNode.id}`,
+      refId: heapNode.id,
+      path: method,
+      reason: `Array ${method} invoked`,
+    })
 
-  commitStep(runtime, {
-    line,
-    event: `Array ${method} on #${heapNode.id}`,
-    eventType: 'heap',
-    meta: { refId: heapNode.id, method },
-  }, node)
+    commitStep(runtime, {
+      line,
+      event: `Array ${method} on #${heapNode.id}`,
+      eventType: 'heap',
+      meta: { refId: heapNode.id, method },
+    }, node)
 
-  return result
+    return result
+  }
+
+  if (method === 'slice') {
+    const sliced = heapNode.value.slice(...args)
+    return runtime.allocateHeap(sliced, 'array')
+  }
+
+  if (method === 'concat') {
+    const unrolled = args.map((a) => (isRef(a) ? runtime.getHeapNode(a).value : a))
+    const concated = heapNode.value.concat(...unrolled)
+    return runtime.allocateHeap(concated, 'array')
+  }
+
+  if (method === 'indexOf') {
+    return heapNode.value.indexOf(args[0])
+  }
+
+  if (method === 'includes') {
+    return heapNode.value.includes(args[0])
+  }
+
+  return undefined
+}
+
+const registerBuiltins = (globalEnv, runtime) => {
+  const mathObj = {
+    floor: createNativeFunction('floor', ([x]) => Math.floor(x)),
+    ceil: createNativeFunction('ceil', ([x]) => Math.ceil(x)),
+    round: createNativeFunction('round', ([x]) => Math.round(x)),
+    abs: createNativeFunction('abs', ([x]) => Math.abs(x)),
+    min: createNativeFunction('min', (args) => Math.min(...args)),
+    max: createNativeFunction('max', (args) => Math.max(...args)),
+    pow: createNativeFunction('pow', ([x, y]) => Math.pow(x, y)),
+    sqrt: createNativeFunction('sqrt', ([x]) => Math.sqrt(x)),
+    random: createNativeFunction('random', () => Math.random()),
+  }
+  const mathRef = runtime.allocateHeap(mathObj, 'object')
+  globalEnv.declare('Math', mathRef)
+
+  globalEnv.declare('parseInt', createNativeFunction('parseInt', ([val, radix]) => parseInt(val, radix || 10)))
+  globalEnv.declare('parseFloat', createNativeFunction('parseFloat', ([val]) => parseFloat(val)))
 }
 
 const processEventLoopTick = (runtime) => {
@@ -812,7 +865,7 @@ const evalCallExpression = (node, env, runtime) => {
       return chained
     }
 
-    if (isRef(objectValue) && ['push', 'pop', 'shift', 'unshift'].includes(property)) {
+    if (isRef(objectValue) && ['push', 'pop', 'shift', 'unshift', 'slice', 'concat', 'indexOf', 'includes'].includes(property)) {
       const args = node.arguments.map((arg) => evalExpression(arg, env, runtime))
       return applyArrayMutation(runtime, objectValue, property, args, line, node)
     }
@@ -1112,6 +1165,7 @@ export const simulateExecution = (code, language = 'javascript', options = {}) =
       sourceLanguage: language,
     })
     const globalEnv = runtime.currentFrame().env
+    registerBuiltins(globalEnv, runtime)
 
     for (const stmt of ast.body) {
       const signal = execStatement(stmt, globalEnv, runtime)

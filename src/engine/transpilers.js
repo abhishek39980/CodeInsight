@@ -17,10 +17,26 @@ const cleanParamList = (raw) => {
     .join(', ')
 }
 
+const TYPE_PATTERN = '(?:int|long|float|double|short|bool|boolean|char|String|string|auto|void)'
+
+const countChar = (text, char) => {
+  let count = 0
+  for (let index = 0; index < text.length; index += 1) {
+    if (text[index] === char) {
+      count += 1
+    }
+  }
+  return count
+}
+
 const normalizeCFamily = (code) => {
   const lines = code.split('\n')
   const output = []
   const lineMap = []
+  const wrapperDepths = new Set()
+  let braceDepth = 0
+  let hasMainDefinition = false
+  let hasMainInvocation = false
 
   const push = (line, sourceLine) => {
     output.push(line)
@@ -30,12 +46,30 @@ const normalizeCFamily = (code) => {
   lines.forEach((line, index) => {
     let next = line
     const sourceLine = index + 1
+    const trimmed = next.trim()
+    const indent = ' '.repeat(next.search(/\S|$/))
 
-    if (/^\s*#/.test(next) || /^\s*using\s+namespace\s+std\s*;/.test(next)) {
+    if (
+      /^\s*#/.test(next) ||
+      /^\s*using\s+namespace\s+std\s*;/.test(next) ||
+      /^\s*import\s+.+;\s*$/.test(next) ||
+      /^\s*package\s+.+;\s*$/.test(next)
+    ) {
       return
     }
 
-    if (/^\s*(public|private|protected)\s+class\s+/.test(next) || /^\s*class\s+/.test(next)) {
+    if (/^\s*(?:public|private|protected)?\s*(?:abstract\s+|final\s+)?(?:class|struct|interface)\s+.+\{\s*$/.test(next)) {
+      const delta = countChar(next, '{') - countChar(next, '}')
+      if (delta > 0) {
+        wrapperDepths.add(braceDepth + 1)
+      }
+      braceDepth += delta
+      return
+    }
+
+    if (trimmed === '}' && wrapperDepths.has(braceDepth)) {
+      wrapperDepths.delete(braceDepth)
+      braceDepth -= 1
       return
     }
 
@@ -46,38 +80,72 @@ const normalizeCFamily = (code) => {
       next = `${next.slice(0, coutMatch.index)}console.log(${coutMatch[1].trim()});`
     }
 
-    next = next.replace(/\bfor\s*\(\s*(?:int|long|float|double|short|bool|boolean|char|auto)\s+/g, 'for (let ')
+    next = next.replace(new RegExp(`\\bfor\\s*\\(\\s*${TYPE_PATTERN}\\s+`, 'g'), 'for (let ')
 
     next = next.replace(
-      /(\b|\()(?:(?:const\s+)?(?:int|long|float|double|short|bool|boolean|char|String|string|auto))\s+([A-Za-z_][\w]*)\s*=/g,
+      new RegExp(`(\\b|\\()(?:(?:const\\s+)?${TYPE_PATTERN}(?:\\s*\\[\\s*\\])+)\\s+([A-Za-z_][\\w]*)\\s*=\\s*\\{`, 'g'),
+      '$1let $2 = [',
+    )
+
+    next = next.replace(
+      new RegExp(`(\\b|\\()(?:(?:const\\s+)?${TYPE_PATTERN})\\s+([A-Za-z_][\\w]*)\\s*\\[[^\\]]*\\]\\s*=\\s*\\{`, 'g'),
+      '$1let $2 = [',
+    )
+
+    next = next.replace(
+      new RegExp(`(\\b|\\()(?:(?:const\\s+)?${TYPE_PATTERN}(?:\\s*\\[\\s*\\])*)\\s+([A-Za-z_][\\w]*)\\s*=`, 'g'),
       '$1let $2 =',
     )
 
     next = next.replace(
-      /(\b|\()(?:(?:const\s+)?(?:int|long|float|double|short|bool|boolean|char|String|string|auto))\s+([A-Za-z_][\w]*)\s*;/g,
+      new RegExp(`(\\b|\\()(?:(?:const\\s+)?${TYPE_PATTERN}(?:\\s*\\[\\s*\\])*)\\s+([A-Za-z_][\\w]*)\\s*;`, 'g'),
       '$1let $2;',
     )
 
-    const fnRegex = /^\s*(?:public\s+|private\s+|protected\s+|static\s+)*(?:void|int|long|float|double|short|bool|boolean|char|String|string|auto)\s+([A-Za-z_][\w]*)\s*\(([^)]*)\)\s*\{\s*$/
+    next = next.replace(/new\s+[A-Za-z_][\w<>\[\]]*\s*\{\s*(.*?)\s*\}/g, '[$1]')
+    next = next.replace(/new\s+[A-Za-z_][\w<>\[\]]*\s*\[\s*([^\]]+)\s*\]/g, 'new Array($1).fill(null)')
+    next = next.replace(/\bnew\s+([A-Z][A-Za-z0-9_]*)\s*\(\s*\)/g, '{}')
+
+    if (/^\s*(?:public|private|protected|static)\s*$/.test(next)) {
+      const delta = countChar(next, '{') - countChar(next, '}')
+      braceDepth += delta
+      return
+    }
+
+    const fnRegex = /^\s*(?:(?:public|private|protected|static|final|synchronized|abstract|native)\s+)*(?:[A-Za-z_][\w<>\[\]]*|void)\s+([A-Za-z_][\w]*)\s*\(([^)]*)\)\s*(?:throws\s+[A-Za-z0-9_.,\s]+)?\{\s*$/
     const fnMatch = next.match(fnRegex)
     if (fnMatch) {
       const name = fnMatch[1]
       const params = cleanParamList(fnMatch[2])
-      push(`${' '.repeat(next.search(/\S|$/))}function ${name}(${params}) {`, sourceLine)
+      push(`${indent}function ${name}(${params}) {`, sourceLine)
+      if (name === 'main') {
+        hasMainDefinition = true
+      }
+      const delta = countChar(next, '{') - countChar(next, '}')
+      braceDepth += delta
       return
     }
 
     if (/^\s*main\s*\(\s*\)\s*\{\s*$/.test(next)) {
       push('function main() {', sourceLine)
+      hasMainDefinition = true
+      const delta = countChar(next, '{') - countChar(next, '}')
+      braceDepth += delta
       return
     }
 
-    if (/^\s*(public|private|protected|static)\s*$/.test(next)) {
-      return
+    if (/^\s*main\s*\(/.test(trimmed)) {
+      hasMainInvocation = true
     }
 
     push(next, sourceLine)
+    const delta = countChar(next, '{') - countChar(next, '}')
+    braceDepth += delta
   })
+
+  if (hasMainDefinition && !hasMainInvocation) {
+    push('main();', lines.length || 1)
+  }
 
   return {
     code: output.join('\n'),
@@ -87,6 +155,7 @@ const normalizeCFamily = (code) => {
 
 const normalizePythonExpression = (text) => {
   return text
+    .replace(/\blen\s*\(\s*([A-Za-z_][\w.]*)\s*\)/g, '$1.length')
     .replace(/\bTrue\b/g, 'true')
     .replace(/\bFalse\b/g, 'false')
     .replace(/\bNone\b/g, 'null')
@@ -170,6 +239,23 @@ const normalizePython = (code) => {
       const start = parts.length > 1 ? parts[0] : '0'
       const end = parts.length > 1 ? parts[1] : parts[0]
       push(`for (let ${iter} = ${start}; ${iter} < ${end}; ${iter} = ${iter} + 1) {`, sourceLine)
+      indentStack.push(indent + 4)
+      return
+    }
+
+    const forInMatch = trimmed.match(/^for\s+([A-Za-z_][\w]*)\s+in\s+(.+)\s*:\s*$/)
+    if (forInMatch) {
+      const iter = forInMatch[1]
+      const iterable = normalizePythonExpression(forInMatch[2].trim())
+      const indexVar = `__iter_${sourceLine}`
+      push(`for (let ${indexVar} = 0; ${indexVar} < ${iterable}.length; ${indexVar} = ${indexVar} + 1) {`, sourceLine)
+      push(`let ${iter} = ${iterable}[${indexVar}];`, sourceLine)
+      indentStack.push(indent + 4)
+      return
+    }
+
+    if (/^if\s+__name__\s*==\s*['"]__main__['"]\s*:\s*$/.test(trimmed)) {
+      push('if (true) {', sourceLine)
       indentStack.push(indent + 4)
       return
     }
