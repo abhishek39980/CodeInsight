@@ -222,16 +222,13 @@ const AtlasCommandRail = ({
               }, {})
             ).map(([catKey, catExamples]) => {
               const catLabelMap = {
-                'stacks-queues': '🥞 Stacks & Queues',
-                'sorting': '🔀 Sorting Algorithms',
-                'algorithms': '⚡ Searching & Math',
-                'linked-lists-trees': '🔗 Linked Lists & Trees',
-                'recursion-graphs': '🌐 Graphs & Traversal',
-                'recursion': '🔁 Recursion',
-                'structures': '🏗️ Data Structures',
-                'loops': '🔄 Loops & Iteration',
-                'objects': '📦 Objects & Maps',
-                'references': '🔗 Pointers & Swaps',
+                'sorting': '🔀 1. Sorting Algorithms',
+                'searching': '🔍 2. Searching & Two Pointers',
+                'linked-lists': '🔗 3. Linked Lists',
+                'trees-recursion': '🌲 4. Trees & Recursion',
+                'graphs-matrix': '🌐 5. Graphs & 2D Matrix',
+                'stacks-queues': '🥞 6. Stacks & Queues',
+                'dp': '🧩 7. Dynamic Programming',
               }
               const groupLabel = catLabelMap[catKey] || catKey.toUpperCase()
               return (
