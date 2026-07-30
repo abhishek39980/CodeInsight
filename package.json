@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -16,9 +17,11 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.37.0",
     "lucide-react": "^0.577.0",
+    "lz-string": "^1.5.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.5.0",
+    "vitest": "^4.1.10"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

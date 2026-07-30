@@ -1,123 +1,75 @@
-# CodeInsight: Visual Storytelling Engine & Educational DSA Platform
+# CodeInsight | AST Execution & Memory Visualizer
 
-CodeInsight is a high-fidelity, frontend-only execution visualizer, DSA educational platform, and cyber-engineering simulator designed to visually explain algorithms, memory management, and code execution. Rather than being a simple debugger, it treats code execution as an interactive narrative storytelling experience.
+CodeInsight is a frontend code execution visualizer that converts JavaScript source code into step-by-step visual snapshot timelines, call-stack trees, and reachability-based heap graphs.
 
----
-
-## ✨ Features & Functionality
-
-CodeInsight makes abstract code tangible through an array of premium interactive visual scenes:
-
-*   **🎓 Complete DSA Algorithm Suite & Categorized Library:**
-    *   Pre-loaded with **50+ algorithmic examples** organized by category (*Stacks & Queues*, *Sorting Algorithms*, *Searching & Math*, *Linked Lists & Trees*, *Graphs & Traversals*).
-    *   Includes **Merge Sort, Quick Sort, Bubble Sort, Insertion Sort, Selection Sort, Stack (LIFO), Queue (FIFO), Reverse Linked List, Binary Search Tree (BST), 2D Grid Matrix BFS, and DP Tables**.
-    *   Supports execution visualization for **JavaScript, Python, Java, and C++**.
-*   **🌐 2D Matrix & Grid Algorithm Canvas:**
-    *   Dedicated visual canvas for 2D matrix algorithms (*Grid BFS/DFS Pathfinding*, *Min Path Sum DP Tables*, *Matrix Transformations*).
-    *   Highlights cell coordinates $(r, c)$, active head vector pointers, visited cells, and dynamic programming table values.
-*   **🧪 Interactive Challenge Arena ("Visual LeetCode"):**
-    *   Includes interactive "Fill in the Blanks", "Spot the Bug", and "Predict Next Pointer" challenges.
-    *   Real-time streak counter (`Flame`), automated answer verification, and hint explanations.
-*   **♻️ Garbage Collection & Memory Lifecycle Visualizer:**
-    *   Tracks memory node reachability from active call stack frames:
-        *   🟢 **Active**: Reachable from active call stack.
-        *   🟡 **Closure**: Reachable via closed-over function scope environments.
-        *   🔴 **Unreachable / Garbage**: Unreferenced memory candidates.
-    *   Includes a **Trigger GC Sweep** action that evaluates reachability and cleans up floating memory nodes.
-*   **🐍 Pyodide WASM Python Runtime Engine:**
-    *   Integrates Pyodide (Python in WebAssembly) for browser-side Python execution alongside high-speed AST snapshotting.
-*   **🎹 Interactive Keyboard Hotkeys:**
-    *   `Space`: Play / Pause execution
-    *   `→` (Right Arrow): Step forward
-    *   `←` (Left Arrow): Step backward
-    *   `R`: Reset execution timeline
-*   **Narrative Interactive Timeline:**
-    *   **Live Code Timeline:** Monaco-based editor that visually steps through code line-by-line, highlighting active & mutated lines.
-    *   **Cinematic Time Rail & Step Scrubber:** Bottom time scrubber allowing you to jump forward, backward, bookmark steps, or replay execution histories.
-*   **Deep Memory & Structural Visualizers:**
-    *   **Memory Graph & Stack Panels:** Real-time stack & heap visualization with pointer movement animations.
-    *   **Call Tree & Recursion Tree:** Visualizes call stack recursion trees for algorithms like Factorial, Fibonacci, Merge Sort, and BST traversals.
-    *   **Event Loop:** Watch how asynchronous callbacks, promises, microtasks, and macrotasks are queued and executed.
-*   **Advanced Control & Analysis Modes:**
-    *   **Compare Mode:** Analyze two different algorithm executions side-by-side.
-    *   **Runtime Complexity (Big O) Reports:** Computes dynamic operation counts and time/space complexity estimations.
+Built for engineers learning Data Structures & Algorithms (DSA) and for live technical interviewing.
 
 ---
 
-## 🏗️ Project Structure
+## Core Features
+
+- **Real AST Step-Walk Interpreter:** Parses source code with Acorn and executes statements sequentially, capturing full state snapshots at every line.
+- **Reachability-Based Garbage Collection:** Live heap node analysis classifying memory as **Active** (on call stack), **Closure** (scoped environment), or **Unreachable** (garbage collection candidate).
+- **Empirical Big-O Complexity:** Measures actual operation counts across scaled input sizes ($N$) and derives Big-O growth curves empirically via least-squares curve fitting.
+- **Execution Safeguards:** Enforces an explicit 1,000-step loop cap and a 100-frame recursion stack depth limit to prevent browser freezes.
+- **Synchronized Scrubber:** Scrub backward and forward through execution history with hotkey support (`Space`, `Right Arrow`, `Left Arrow`, `R`).
+- **Permalink Sharing:** Share execution states, custom inputs, and precise step indices via LZ-string compressed URL hash links.
+
+---
+
+## Architecture
 
 ```text
-CodeInsight/
-├── index.html                 # Main entry point
-├── package.json               # Dependencies (React 19, Vite, Framer Motion, Monaco)
-├── tailwind.config.js         # Custom Tailwind theme and Cyber-aesthetic tokens
-├── src/
-│   ├── main.jsx               # React application mounting
-│   ├── App.jsx                # Core application layout, hotkeys & state management 
-│   ├── components/            # UI Components & Overlays
-│   │   ├── AppShell.jsx       # Layout orchestrator
-│   │   ├── EditorPanel.jsx    # Live code editor using Monaco
-│   │   ├── atlas/             # Specialized Atlas narrative visualizers
-│   │   │   ├── AtlasCommandRail.jsx     # Navigation bar & grouped example selector
-│   │   │   ├── AtlasSceneCanvas.jsx     # Scene switcher container
-│   │   │   ├── AtlasTimelineScene.jsx   # Live code timeline scene
-│   │   │   ├── AtlasMemoryGraphScene.jsx# Memory heap graph & GC sweep
-│   │   │   ├── AtlasGridScene.jsx       # 2D Grid & Matrix algorithm canvas
-│   │   │   ├── AtlasChallengePanel.jsx  # Interactive Challenge Arena
-│   │   │   ├── AtlasCallTreeScene.jsx   # Dynamic recursion call tree
-│   │   │   ├── AtlasEventLoopScene.jsx  # JS Event Loop queue state
-│   │   │   ├── AtlasComplexityScene.jsx # Complexity Big-O report
-│   │   │   ├── AtlasNarrativeDock.jsx   # Step caption narrator & cause chain
-│   │   │   └── AtlasTimeRail.jsx        # Cinematic timeline scrubber
-│   │   └── visualizers/       # Reusable visualization primitives
-│   ├── engine/                # Execution & Simulation Engine
-│   │   ├── executor.js        # Core logic generating execution timelines & built-ins
-│   │   ├── runtime.js         # Memory runtime and heap manager
-│   │   ├── snapshotBuilder.js # Constructs discrete execution steps
-│   │   ├── scopeTracker.js    # Manages lexical scopes and closures
-│   │   ├── structureDetector.js# Analyzes heap for arrays, trees, linked-lists
-│   │   ├── examples.js        # 50+ built-in DSA algorithm examples
-│   │   ├── eventLoop.js       # Asynchronous execution emulator
-│   │   ├── transpilers.js     # Transpiles Python/Java/C++ to JS AST
-│   │   ├── plugins/           # Pyodide WASM runtime plugins
-│   │   └── metrics.js         # Computes complexity metrics
-│   ├── utils/                 # General utility functions
-│   └── hooks/                 # Custom React hooks
-└── public/                    # Static assets
+[Monaco Editor / Custom Input]
+       │
+       ▼
+[Acorn AST Engine]
+       │
+       ▼
+[Tree-Walk Interpreter] ──► [Step Threshold (1000 max) & Recursion Safeguards (100 frames)]
+       │
+       ▼
+[Snapshot Builder] ──► [Call Stack + Reachability GC Engine (Active / Closure / Unreachable)]
+       │
+       ▼
+[Visual Scenes: Timeline | Memory Graph | Call Tree | AST | Empirical Complexity | Scopes]
 ```
 
 ---
 
-## 🚀 Getting Started
+## Supported Languages
 
-To run CodeInsight locally:
+- **JavaScript (ES2024):** Fully supported via native AST parser and tree-walk runtime engine.
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/abhishek39980/CodeInsight.git
-   cd CodeInsight
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-
-4. **Launch the app:**
-   Open your browser and navigate to `http://localhost:5173/`. 
+*Note: C++, Java, and Python transpilation layers were intentionally omitted to guarantee 100% accurate, un-simulated state execution.*
 
 ---
 
-## 🛠️ Technology Stack
+## Local Setup
 
-*   **Framework:** React 19 + Vite
-*   **Styling:** TailwindCSS (Custom "Atlas" dark theme with glassmorphism) + Framer Motion (Animations)
-*   **Icons & Utilities:** Lucide React (`lucide-react`), `clsx`, and `tailwind-merge`
-*   **Editor:** Monaco Editor (`@monaco-editor/react`)
-*   **Engine Parsing:** Acorn (`acorn`, `acorn-walk`) for generating Abstract Syntax Trees.
-*   **WASM Integration:** Pyodide WASM runtime bridge for Python.
+```bash
+git clone https://github.com/abhishek39980/CodeInsight.git
+cd CodeInsight
+npm install
+npm run dev
+```
+
+To run unit tests:
+```bash
+npm run test
+```
+
+---
+
+## Technical Interview Defense Brief
+
+When explaining CodeInsight in a technical interview, focus on these three core engineering challenges:
+
+1. **Heap Reachability from Live Call Stack Frames:**
+   > *"Instead of relying on browser DevTools, I built a custom mark-and-sweep analyzer in `runtime.js`. During AST step execution, the engine traverses active environment scopes from top-of-stack down to global scope, marks reachable heap references, detects closures, and flags unreferenced object IDs as garbage collection candidates in real time."*
+
+2. **Step-Indexed Immutable Snapshotting:**
+   > *"To support reverse stepping without re-running the interpreter, every statement evaluation creates an immutable snapshot of variable bindings, call-stack frames, and heap object states. To optimize memory footprint during deep execution runs, structural cloning isolates only mutated references between consecutive steps."*
+
+3. **Empirical Big-O Analysis via Operation Counting:**
+   > *"Rather than using regex pattern matching or static AST loop counting—which breaks easily on complex code—I implemented an empirical execution analyzer. The engine runs the AST against increasing input sizes ($N$), counts primitive runtime operations (reads, writes, comparisons), and applies linear least-squares regression to determine time and space complexity dynamically."*

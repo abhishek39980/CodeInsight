@@ -191,20 +191,21 @@ const AtlasCommandRail = ({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
-        <div className="rounded-lg border border-atlas-muted/25 bg-atlas-surface/60 px-2 py-1">
-          <span className="mr-2 text-[11px] text-atlas-muted">Language</span>
-          <select
-            className="rounded-md border border-atlas-muted/25 bg-atlas-surface px-2 py-1 text-xs text-atlas-text outline-none"
-            value={selectedLanguage}
-            onChange={(event) => onLanguageChange(event.target.value)}
-          >
-            {languages.map((language) => (
-              <option key={language.id} value={language.id}>
-                {language.label}
-              </option>
-            ))}
-          </select>
+        <div className="rounded-lg border border-atlas-muted/25 bg-atlas-surface/60 px-3 py-1 text-xs text-atlas-muted font-mono">
+          Engine: <span className="text-atlas-brand font-semibold">JavaScript (Native AST)</span>
         </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (typeof window !== 'undefined' && window.__sharePermalink) {
+              window.__sharePermalink()
+            }
+          }}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-atlas-brand/40 bg-atlas-brand/20 px-3 py-1.5 text-xs text-atlas-text transition hover:bg-atlas-brand/30"
+          title="Share compressed URL permalink snapshot"
+        >
+          Share Snapshot
+        </button>
         <div className="rounded-lg border border-atlas-muted/25 bg-atlas-surface/60 px-2 py-1">
           <span className="mr-2 text-[11px] text-atlas-muted">Example</span>
           <select

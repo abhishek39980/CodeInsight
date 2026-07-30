@@ -446,6 +446,9 @@ const awaitPromise = (runtime, promise, line, node = null) => {
 
 const invokeCallable = (callable, args, runtime, context = {}) => {
   const line = context.line || 1
+  if (runtime.frames.length >= 100) {
+    throw makeRuntimeError('Stack Overflow: Maximum recursion depth exceeded (100 frames max)', line)
+  }
   if (!callable || callable.kind !== 'function') {
     throw makeRuntimeError('Attempted to call a non-function value', line)
   }

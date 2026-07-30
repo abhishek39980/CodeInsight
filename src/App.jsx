@@ -5,6 +5,8 @@ import AtlasInspectorOrb from './components/atlas/AtlasInspectorOrb'
 import AtlasNarrativeDock from './components/atlas/AtlasNarrativeDock'
 import AtlasSceneCanvas from './components/atlas/AtlasSceneCanvas'
 import AtlasTimeRail from './components/atlas/AtlasTimeRail'
+import { encodePermalink, decodePermalink } from './utils/permalink'
+import { buildComplexityReport } from './engine/analysis/complexity'
 import { codeExamples, defaultExampleId, supportedLanguages } from './engine/examples'
 import { buildInspectorContext } from './engine/explainers'
 import { simulateExecution } from './engine/executor'
@@ -81,7 +83,11 @@ function App() {
       lineToNodeIds: {},
       orderedNodeIds: [],
     })
-    setComplexityReport(result.complexityReport || null)
+    
+    // Generate empirical Big-O regression complexity report
+    const empiricalReport = buildComplexityReport(result.astArtifacts?.root, result.steps || [], code)
+    setComplexityReport(empiricalReport)
+
     setSynchronizationLayer(result.synchronizationLayer || null)
     setRuntimeMeta(result.runtimeMeta || null)
     setStepIndex(0)
@@ -91,6 +97,27 @@ function App() {
     setIsDirty(false)
     return result
   }
+
+  useEffect(() => {
+    window.__sharePermalink = () => {
+      const url = encodePermalink({ code, language: selectedLanguage, stepIndex })
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url)
+        alert('Compressed snapshot permalink copied to clipboard!')
+      } else {
+        prompt('Copy permalink URL:', url)
+      }
+    }
+  }, [code, selectedLanguage, stepIndex])
+
+  useEffect(() => {
+    const permalink = decodePermalink()
+    if (permalink && permalink.code) {
+      setCode(permalink.code)
+      if (permalink.language) setSelectedLanguage(permalink.language)
+      setIsDirty(true)
+    }
+  }, [])
 
   const ensureCompiled = () => {
     if (!isDirty && runtimeRef.current) {

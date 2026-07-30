@@ -73,7 +73,7 @@ export class Env {
 }
 
 export class Runtime {
-  constructor({ lineMap = [], sourceLanguage = 'javascript', maxSteps = 3500 }) {
+  constructor({ lineMap = [], sourceLanguage = 'javascript', maxSteps = 1000 }) {
     this.maxSteps = maxSteps
     this.lineMap = lineMap
     this.sourceLanguage = sourceLanguage
@@ -148,7 +148,7 @@ export class Runtime {
 
   ensureBudget() {
     if (this.stepId >= this.maxSteps) {
-      const error = new Error(`Step limit (${this.maxSteps}) reached. Try smaller input.`)
+      const error = new Error(`Execution Safeguard: Loop step limit reached (${this.maxSteps} steps max)`)
       error.__line = this.steps[this.steps.length - 1]?.line || 1
       throw error
     }

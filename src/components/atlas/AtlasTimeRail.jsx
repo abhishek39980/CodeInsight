@@ -89,7 +89,7 @@ const AtlasTimeRail = ({
     <div className="atlas-surface px-4 py-3">
       <div className="mb-2 flex items-center justify-between">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.14em] text-atlas-muted">Cinematic Time Rail</p>
+          <p className="text-[11px] uppercase tracking-[0.14em] text-atlas-muted">Execution Timeline Scrubber</p>
           <p className="text-xs text-atlas-muted">
             Step {total ? `${currentIndex + 1}/${total}` : '0/0'} • clustered loops • lifecycle overlays
           </p>
