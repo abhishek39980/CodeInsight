@@ -164,6 +164,19 @@ const attachPromiseHandler = (runtime, promise, onFulfilled, onRejected, line, e
 }
 
 const readMember = (runtime, objectRef, property, line, node = null) => {
+  if (typeof objectRef === 'string') {
+    if (property === 'length') {
+      return objectRef.length
+    }
+    if (!Number.isNaN(Number(property))) {
+      return objectRef[Number(property)]
+    }
+    if (typeof String.prototype[property] === 'function') {
+      return createNativeFunction(String(property), (args) => objectRef[property](...args))
+    }
+    return objectRef[property]
+  }
+
   if (!isRef(objectRef)) {
     throw makeRuntimeError('Cannot access property on primitive value', line)
   }
@@ -697,21 +710,27 @@ const evalExpression = (node, env, runtime) => {
 
       if (node.left.type === 'Identifier') {
         const name = node.left.name
-        const lookup = resolveIdentifier(env, name)
+        let lookup = resolveIdentifier(env, name)
         runtime.recordResolution(lookup.path)
-        if (!lookup.scope) {
-          throw makeRuntimeError(`'${name}' is not defined`, line)
+        let targetScope = lookup.scope
+        if (!targetScope) {
+          if (node.operator === '=') {
+            env.declare(name, undefined)
+            targetScope = env
+          } else {
+            throw makeRuntimeError(`'${name}' is not defined`, line)
+          }
         }
 
-        const prev = lookup.scope.bindings.get(name)
+        const prev = targetScope.bindings.get(name)
         const base = node.operator === '=' ? 0 : prev
         const next = node.operator === '=' ? right : applyBinary(node.operator.slice(0, -1), base, right, line)
-        lookup.scope.bindings.set(name, next)
+        targetScope.bindings.set(name, next)
 
         runtime.addUpdate({
           kind: 'set',
-          key: `var:${lookup.scope.name}:${name}`,
-          scope: lookup.scope.name,
+          key: `var:${targetScope.name}:${name}`,
+          scope: targetScope.name,
           name,
           prev: valueToText(serializeValue(prev)),
           next: valueToText(serializeValue(next)),
@@ -755,15 +774,17 @@ const evalExpression = (node, env, runtime) => {
       if (node.argument.type !== 'Identifier') {
         throw makeRuntimeError('Only identifier updates are supported', line)
       }
-      const lookup = resolveIdentifier(env, node.argument.name)
+      let lookup = resolveIdentifier(env, node.argument.name)
       runtime.recordResolution(lookup.path)
-      if (!lookup.scope) {
-        throw makeRuntimeError(`'${node.argument.name}' is not defined`, line)
+      let targetScope = lookup.scope
+      if (!targetScope) {
+        env.declare(node.argument.name, 0)
+        targetScope = env
       }
-      const current = lookup.scope.bindings.get(node.argument.name)
+      const current = targetScope.bindings.get(node.argument.name)
       const delta = node.operator === '++' ? 1 : -1
       const next = current + delta
-      lookup.scope.bindings.set(node.argument.name, next)
+      targetScope.bindings.set(node.argument.name, next)
 
       runtime.addUpdate({
         kind: 'set',

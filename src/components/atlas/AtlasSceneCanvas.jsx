@@ -7,10 +7,14 @@ import AtlasMemoryGraphScene from './AtlasMemoryGraphScene'
 import AtlasScopeScene from './AtlasScopeScene'
 import AtlasAstScene from './AtlasAstScene'
 import AtlasTimelineScene from './AtlasTimelineScene'
+import AtlasGridScene from './AtlasGridScene'
+import AtlasChallengePanel from './AtlasChallengePanel'
 
 const viewLabel = {
   timeline: 'Timeline View',
   memory: 'Memory Graph View',
+  grid: '2D Grid & Matrix View',
+  challenge: 'Challenge Arena View',
   callTree: 'Call Tree View',
   eventLoop: 'Event Loop View',
   ast: 'AST View',
@@ -89,6 +93,16 @@ const AtlasSceneCanvas = ({
               onSelectEntity={onSelectEntity}
               onHoverEntity={onHoverEntity}
             />
+          ) : null}
+          {view === 'grid' ? (
+            <AtlasGridScene
+              currentStep={currentStep}
+              selectedEntity={selectedEntity}
+              onSelectEntity={onSelectEntity}
+            />
+          ) : null}
+          {view === 'challenge' ? (
+            <AtlasChallengePanel currentStep={currentStep} />
           ) : null}
           {view === 'callTree' ? <AtlasCallTreeScene currentStep={currentStep} focusMode={focusMode} /> : null}
           {view === 'eventLoop' ? <AtlasEventLoopScene currentStep={currentStep} /> : null}

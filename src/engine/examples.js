@@ -1005,6 +1005,69 @@ top = top - 1;
 System.out.println(topValue);
 System.out.println(top + 1);`,
   },
+  {
+    id: 'js-grid-bfs',
+    language: 'javascript',
+    label: '2D Grid Matrix BFS Walk',
+    subtitle: 'row/col cell matrix traversal',
+    category: 'structures',
+    code: `let grid = [
+  [1, 1, 0],
+  [1, 1, 0],
+  [0, 0, 1]
+];
+
+let rows = grid.length;
+let cols = grid[0].length;
+let visitedCount = 0;
+
+for (let r = 0; r < rows; r = r + 1) {
+  for (let c = 0; c < cols; c = c + 1) {
+    if (grid[r][c] === 1) {
+      visitedCount = visitedCount + 1;
+    }
+  }
+}
+
+console.log(visitedCount);`,
+  },
+  {
+    id: 'js-grid-dp-minpath',
+    language: 'javascript',
+    label: '2D Grid Min Path Sum (DP Table)',
+    subtitle: 'dynamic programming 2D table fill',
+    category: 'structures',
+    code: `let grid = [
+  [1, 3, 1],
+  [1, 5, 1],
+  [4, 2, 1]
+];
+
+let dp = [
+  [0, 0, 0],
+  [0, 0, 0],
+  [0, 0, 0]
+];
+
+dp[0][0] = grid[0][0];
+
+for (let c = 1; c < 3; c = c + 1) {
+  dp[0][c] = dp[0][c - 1] + grid[0][c];
+}
+
+for (let r = 1; r < 3; r = r + 1) {
+  dp[r][0] = dp[r - 1][0] + grid[r][0];
+}
+
+for (let r = 1; r < 3; r = r + 1) {
+  for (let c = 1; c < 3; c = c + 1) {
+    let minPrev = dp[r - 1][c] < dp[r][c - 1] ? dp[r - 1][c] : dp[r][c - 1];
+    dp[r][c] = grid[r][c] + minPrev;
+  }
+}
+
+console.log(dp[2][2]);`,
+  },
 ]
 
 export const compareExamplePair = {

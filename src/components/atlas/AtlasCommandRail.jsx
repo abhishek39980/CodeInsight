@@ -23,6 +23,8 @@ const modes = [
 const views = [
   { id: 'timeline', label: 'Timeline' },
   { id: 'memory', label: 'Memory Graph' },
+  { id: 'grid', label: '2D Grid' },
+  { id: 'challenge', label: 'Challenge Arena' },
   { id: 'callTree', label: 'Call Tree' },
   { id: 'eventLoop', label: 'Event Loop' },
   { id: 'ast', label: 'AST' },

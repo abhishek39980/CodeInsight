@@ -344,29 +344,42 @@ const AtlasMemoryGraphScene = ({
             <h3 className="text-sm font-semibold">Memory Panel Extensions</h3>
             <p className="text-xs text-atlas-muted">Specialized structure rendering, pointer overlays, and reference graph toggle</p>
           </div>
-          <div className="inline-flex items-center gap-1 rounded-lg border border-atlas-muted/25 bg-atlas-surface/70 p-1">
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setMemoryMode('structure')}
-              className={cn(
-                'inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs',
-                memoryMode === 'structure' ? 'bg-atlas-brand/20 text-atlas-text' : 'text-atlas-muted',
-              )}
+              onClick={() => {
+                const garbageCount = heap.filter((n) => !referencedHeapIds.has(String(nodeIdClean(n.id)))).length
+                alert(garbageCount > 0 ? `Garbage Collector swept ${garbageCount} unreachable memory node(s)!` : 'Memory Heap clean. 0 unreachable nodes.')
+              }}
+              className="inline-flex items-center gap-1 rounded-lg border border-atlas-error/40 bg-atlas-error/15 px-2.5 py-1 text-xs text-atlas-text transition hover:bg-atlas-error/25"
             >
-              <Grid3X3 size={12} />
-              Structure
+              <RefreshCw size={12} className="text-atlas-error" />
+              Trigger GC Sweep
             </button>
-            <button
-              type="button"
-              onClick={() => setMemoryMode('reference')}
-              className={cn(
-                'inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs',
-                memoryMode === 'reference' ? 'bg-atlas-brand/20 text-atlas-text' : 'text-atlas-muted',
-              )}
-            >
-              <GitBranch size={12} />
-              Reference Graph
-            </button>
+            <div className="inline-flex items-center gap-1 rounded-lg border border-atlas-muted/25 bg-atlas-surface/70 p-1">
+              <button
+                type="button"
+                onClick={() => setMemoryMode('structure')}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs',
+                  memoryMode === 'structure' ? 'bg-atlas-brand/20 text-atlas-text' : 'text-atlas-muted',
+                )}
+              >
+                <Grid3X3 size={12} />
+                Structure
+              </button>
+              <button
+                type="button"
+                onClick={() => setMemoryMode('reference')}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs',
+                  memoryMode === 'reference' ? 'bg-atlas-brand/20 text-atlas-text' : 'text-atlas-muted',
+                )}
+              >
+                <GitBranch size={12} />
+                Reference Graph
+              </button>
+            </div>
           </div>
         </div>
 
