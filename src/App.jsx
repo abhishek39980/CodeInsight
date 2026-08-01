@@ -49,6 +49,7 @@ function App() {
   })
   const [complexityReport, setComplexityReport] = useState(null)
   const [synchronizationLayer, setSynchronizationLayer] = useState(null)
+  const [runtimeMeta, setRuntimeMeta] = useState(null)
   const [pointerTags, setPointerTags] = useState(new Set())
   const [selectedAstNodeId, setSelectedAstNodeId] = useState(null)
   const [breakpoints, setBreakpoints] = useState(new Set())
