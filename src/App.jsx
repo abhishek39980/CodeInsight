@@ -466,7 +466,7 @@ function App() {
               setIsRunning(false)
               setError(null)
             }}
-            language={editorLanguage}
+            language={selectedLanguage}
             loadingExample={loadingExample}
             currentStep={currentStep}
             previousStep={previousStep}
