@@ -1,94 +1,109 @@
-# CodeInsight | AST Execution & Memory Visualizer
+# CodeInsight — Visual Code Execution Engine
 
-CodeInsight is a 100% client-side frontend code execution visualizer that converts JavaScript source code into step-by-step visual snapshot timelines, call-stack trees, and reachability-based heap graphs.
+CodeInsight is a 100% client-side JavaScript execution visualizer that converts source code into step-by-step interactive timelines, AST-driven state snapshots, and empirical Big-O complexity reports.
 
-Built for engineers learning Data Structures & Algorithms (DSA) and for live technical interviewing.
+Built for engineers learning Data Structures & Algorithms (DSA) and for live technical interview preparation.
+
+> **Live Demo:** [codeinsight.vercel.app](https://codeinsight.vercel.app)
 
 ---
 
 ## 🛠️ Tech Stack
 
-Every technology listed below is genuinely integrated into the codebase with evidence in dependencies, configuration, or source code:
-
-- **Core UI & Build Engine:**
-  - **React (v19.2.4):** Frontend UI library for rendering application state, scene canvases, and interactive controls (`src/App.jsx`, `src/main.jsx`).
-  - **Vite (v8.0.0):** High-performance local development server and production bundler (`vite.config.js`).
-
-- **Code Editing & Parsing:**
-  - **Monaco Editor (`@monaco-editor/react` v4.7.0):** VS Code-powered browser editor component for syntax highlighting and code editing (`src/components/EditorPanel.jsx`).
-  - **Acorn (v8.16.0) & Acorn-Walk (v8.3.5):** JavaScript Abstract Syntax Tree (AST) parser and walker driving the step-by-step interpreter (`src/engine/executor.js`).
-
-- **Styling, Icons & Animations:**
-  - **Tailwind CSS (v3.4.17), PostCSS & Autoprefixer:** Utility-first design system (`tailwind.config.js`, `postcss.config.js`, `src/index.css`).
-  - **clsx (v2.1.1) & tailwind-merge (v3.5.0):** Utility for conditional class merging (`src/utils/cn.js`).
-  - **Framer Motion (v12.37.0):** Animation library for smooth timeline scrubbing, scene transitions, and UI motion (`src/components/atlas/AtlasTimeRail.jsx`).
-  - **Lucide React (v0.577.0):** Icon suite for UI command rails, navigation, and state inspection (`src/components/atlas/AtlasCommandRail.jsx`).
-
-- **Utilities & Testing:**
-  - **LZ-String (v1.5.0):** Compression utility for encoding code state and step indices into shareable URL permalinks (`src/utils/permalink.js`).
-  - **Vitest (v4.1.10):** Unit testing framework for verifying AST tree-walk evaluation, GC reachability, and complexity curve fitting (`src/engine/__tests__/`).
+| Layer | Technology |
+|---|---|
+| **UI Framework** | React 19.2.4 |
+| **Build Tool** | Vite 8.0.0 |
+| **Code Editor** | Monaco Editor (`@monaco-editor/react` v4.7.0) |
+| **AST Parser** | Acorn v8.16.0 + Acorn-Walk v8.3.5 |
+| **Styling** | Tailwind CSS v3.4 + PostCSS |
+| **Animations** | Framer Motion v12.37.0 |
+| **Icons** | Lucide React v0.577.0 |
+| **URL Compression** | LZ-String v1.5.0 |
+| **Testing** | Vitest v4.1.10 |
 
 ---
 
-## ✨ Core Features
+## ✨ Features
 
-- **Interactive Auto-Layout Tree & Graph Renderer:** Auto-detects binary search trees (`{ value, left, right }`), linked lists (`{ value, next }`), and graph structures in memory, rendering textbook-style SVG node diagrams with live highlights.
-- **Side-by-Side Dual Algorithm Comparison View:** Executes two algorithms concurrently (e.g., QuickSort vs. BubbleSort) under a single synchronized timeline scrubber to compare operation counts and stack depth metrics.
-- **Big-O Complexity & Theoretical Explanation Tab:** Displays theoretical specs (Best/Average/Worst case, Auxiliary Space), recurrence relations (e.g., $T(N) = 2T(N/2) + O(N)$), detailed explanations, and empirical regression curves.
-- **Interactive Line Breakpoints:** Click any line number in Monaco Editor to set breakpoints. Execution automatically pauses when hitting a breakpoint.
-- **Pinned Variable Watchlist:** Pin specific variables to monitor their step-by-step value progression, previous state, and mutation deltas in real time.
-- **Permalink Sharing:** Share execution states, custom inputs, and precise step indices via LZ-string compressed URL hash links.
-- **Comprehensive DSA Suite:** 27 runnable canonical JavaScript algorithms categorized across 7 core categories.
+### 🎬 Timeline Execution View
+- Step-by-step AST interpreter — every variable declaration, assignment, function call, loop iteration, and return is captured as an immutable snapshot
+- Monaco Editor with live syntax highlighting, active line decoration, and **clickable gutter breakpoints**
+- Playback controls: Run / Pause / Step Forward / Step Back / Reset with keyboard shortcuts (`Space`, `←`, `→`, `R`)
+- Adjustable playback speed (0.25× – 2×)
+- **Pinned Variable Watchlist** — pin variables to track step-by-step value progression and mutation deltas
+
+### 📊 Complexity Analysis View
+- Theoretical specs per algorithm: Best / Average / Worst time, Auxiliary Space, and Recurrence Relation
+- Detailed human-readable explanation of _why_ the complexity is what it is
+- Empirical growth curve estimated from captured execution steps via least-squares regression
+- Supports: Merge Sort, Quick Sort, Binary Search, Bubble Sort, Fibonacci DP, Knapsack DP, and more
+
+### ⚔️ Dual Algorithm Comparison View
+- Executes two algorithms (QuickSort vs. BubbleSort by default) lazily in background workers
+- Synchronized scrubber to compare operation counts and call stack depth side-by-side
+- Line-level active highlighting on both algorithm source panels simultaneously
+
+### 🌳 AST Explorer View
+- Interactive syntax tree of the parsed source code
+- Click any AST node to jump to the corresponding execution step
+- Syncs bidirectionally with the Timeline scrubber
+
+### 🔴 Breakpoints & Watchlist
+- Click any line number gutter to toggle a breakpoint — playback auto-pauses when hit
+- Type variable names into the Watchlist panel to monitor their live values
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Engine Architecture
 
 ```text
-[Monaco Editor / Custom Input]
-       │
-       ▼
-[Acorn AST Engine]
-       │
-       ▼
-[Tree-Walk Interpreter] ──► [Step Cap (1000 max) & Recursion Guard (100 frames)]
-       │
-       ▼
-[Snapshot Builder] ──► [Call Stack + Reachability GC Engine (Active / Closure / Unreachable)]
-       │
-       ▼
-[Visual Scenes: Timeline | Memory Graph | Call Tree | AST | Empirical Complexity | Scopes]
+[Monaco Editor — source code input]
+        │
+        ▼
+[Acorn AST Parser — builds full AST with node locations]
+        │
+        ▼
+[Tree-Walk Interpreter]
+  ├─ Supports: var/let/const, if/else, for, while, do-while,
+  │            for-of, for-in, switch, break, continue,
+  │            functions, closures, recursion, try/catch/finally
+  ├─ Step Cap: 1,000 steps max
+  └─ Recursion Guard: 100 call frames max
+        │
+        ▼
+[Snapshot Builder]
+  ├─ Immutable per-step state: call stack, heap, variable bindings
+  └─ Reachability GC: Active / Closure / Unreachable classification
+        │
+        ▼
+[Visual Scenes]
+  Timeline │ Dual Comparison │ Complexity Analysis │ AST Explorer
 ```
 
 ---
 
-## 🌐 Supported Languages
+## 📚 Algorithm Suite (27 Canonical JS Algorithms)
 
-- **JavaScript (ES2024):** Fully supported via native AST parser and tree-walk interpreter engine.
-
-*Note: C++, Java, and Python transpilation layers were intentionally omitted to guarantee 100% accurate, un-simulated AST state execution without fake regex string replacements.*
-
----
-
-## 📚 Preset Algorithm Suite (27 Canonical JS Algorithms)
-
-1. **Sorting Algorithms:** Merge Sort, Quick Sort (Lomuto), Insertion Sort, Selection Sort, Bubble Sort
-2. **Searching & Two Pointers:** Binary Search (Iterative & Recursive), Two Sum, Container With Most Water, Sliding Window Max Sum
-3. **Linked Lists:** Reverse Linked List (Iterative & Recursive), Cycle Detection (Floyd's Tortoise & Hare), Merge Two Sorted Lists
-4. **Trees & Recursion:** Binary Search Tree (Insert & Search), Max Depth of Binary Tree, Fibonacci (Memoized DP), Subsets Backtracking
-5. **Graphs & 2D Matrix:** 2D Grid BFS Walk, DFS Graph Traversal (Adjacency List), Minimum Path Sum (2D Grid DP Table)
-6. **Stacks & Queues:** Valid Parentheses, Queue Operations (FIFO), Min Stack
-7. **Dynamic Programming:** 0/1 Knapsack (Tabulation), Longest Common Subsequence (LCS), Climbing Stairs
+| # | Category | Algorithms |
+|---|---|---|
+| 1 | **Sorting** | Merge Sort, Quick Sort (Lomuto), Insertion Sort, Selection Sort, Bubble Sort |
+| 2 | **Searching & Two Pointers** | Binary Search (Iterative & Recursive), Two Sum, Container With Most Water, Sliding Window Max Sum |
+| 3 | **Linked Lists** | Reverse (Iterative & Recursive), Cycle Detection (Floyd's), Merge Two Sorted Lists |
+| 4 | **Trees & Recursion** | BST Insert & Search, Max Depth of Binary Tree, Fibonacci (Memoized), Subsets Backtracking |
+| 5 | **Graphs & Matrix** | 2D Grid BFS Walk, DFS Graph Traversal, Minimum Path Sum |
+| 6 | **Stacks & Queues** | Valid Parentheses, Queue (FIFO), Min Stack |
+| 7 | **Dynamic Programming** | 0/1 Knapsack (Tabulation), LCS, Climbing Stairs |
 
 ---
 
-## 🚀 Local Setup & Development
+## 🚀 Local Setup
 
 ### Prerequisites
-- **Node.js:** v18.0.0 or higher
-- **npm:** v9.0.0 or higher
+- **Node.js** v18.0.0 or higher
+- **npm** v9.0.0 or higher
 
-### Installation & Execution
+### Run Locally
 
 ```bash
 # Clone the repository
@@ -98,10 +113,10 @@ cd CodeInsight
 # Install dependencies
 npm install
 
-# Start local development server
+# Start local development server (http://localhost:5173)
 npm run dev
 
-# Run Vitest unit test suite
+# Run unit tests
 npm run test
 
 # Build production bundle
@@ -110,27 +125,23 @@ npm run build
 
 ---
 
-## 🎯 Technical Interview Defense Brief
+## 🎯 Technical Interview Defense
 
-When explaining CodeInsight in a technical interview, focus on these three core engineering challenges:
+Three core engineering challenges worth explaining:
 
-1. **Heap Reachability from Live Call Stack Frames:**
-   > *"Instead of relying on browser DevTools, I built a custom mark-and-sweep analyzer in `runtime.js`. During AST step execution, the engine traverses active environment scopes from top-of-stack down to global scope, marks reachable heap references, detects closures, and flags unreferenced object IDs as garbage collection candidates in real time."*
+### 1. Reachability-Based GC in the AST Interpreter
+> *"Instead of relying on browser DevTools, I built a custom mark-and-sweep analyzer in `runtime.js`. During each step, the engine traverses active environment scopes from top-of-stack down to global scope, marks all reachable heap references, detects closures, and flags unreferenced object IDs as garbage-collection candidates in real time."*
 
-2. **Step-Indexed Immutable Snapshotting:**
-   > *"To support reverse stepping without re-running the interpreter, every statement evaluation creates an immutable snapshot of variable bindings, call-stack frames, and heap object states. To optimize memory footprint during deep execution runs, structural cloning isolates only mutated references between consecutive steps."*
+### 2. Step-Indexed Immutable Snapshotting
+> *"To support reverse stepping without re-running the interpreter, every statement evaluation creates an immutable snapshot of variable bindings, call-stack frames, and heap object states. Structural cloning isolates only mutated references between consecutive steps to keep memory usage bounded."*
 
-3. **Empirical Big-O Analysis via Operation Counting:**
-   > *"Rather than using regex pattern matching or static AST loop counting—which breaks easily on complex code—I implemented an empirical execution analyzer. The engine runs the AST against increasing input sizes ($N$), counts primitive runtime operations (reads, writes, comparisons), and applies linear least-squares regression to determine time and space complexity dynamically."*
+### 3. Non-blocking Big-O Estimation
+> *"Rather than running 4 separate simulations to build complexity data points (which froze the browser), I rewrote the complexity engine to estimate growth curves from the single captured execution via step-density extrapolation, then apply linear least-squares regression to the synthetic data points. This reduces simulation overhead from 5× down to 1×."*
 
 ---
 
-## 📊 Documentation Changes Summary
+## 🌐 Language Support
 
-| Added | Removed | Verified |
-| --- | --- | --- |
-| Explicit **Tech Stack** section detailing React 19, Vite 8, Monaco Editor, Acorn & Acorn Walk, Framer Motion, Tailwind CSS, Lucide React, LZ-String, and Vitest | Pyodide WASM Python runtime & C++/Java regex transpilers (omitted to guarantee 100% real execution) | **Acorn AST Tree-Walk Interpreter** (`src/engine/executor.js`) |
-| Documented 27 canonical algorithms across 7 structured DSA categories in `examples.js` | Static loop-depth Big-O heuristics & arbitrary "Confidence: Low" badges | **Reachability-Based GC Engine** (Active / Closure / Unreachable in `src/engine/runtime.js`) |
-| Vitest test suite (`npm run test`) execution instructions and test setup details | Unused backend server frameworks, external databases, or third-party AI APIs | **Empirical Big-O Regression Engine** (`src/engine/analysis/complexity.js`) |
-| Environment prerequisites (Node.js & npm version requirements) | Gamified flame streak counters & non-functional scene theater | **LZ-String Compressed Permalinks** (`src/utils/permalink.js`) |
-| | | **Monaco Code Editor Component** (`src/components/EditorPanel.jsx`) |
+- **JavaScript (ES2024):** Fully supported — `var`/`let`/`const`, arrow functions, closures, recursion, `break`/`continue`, `for...of`, `for...in`, `switch`, `try`/`catch`/`finally`, template literals, spread/rest operators.
+
+*Python, C++, and Java stubs are intentionally omitted to guarantee 100% accurate, un-simulated AST state execution.*

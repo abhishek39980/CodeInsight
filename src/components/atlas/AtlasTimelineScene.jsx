@@ -56,7 +56,7 @@ const AtlasTimelineScene = ({
   nextStep,
   selectedEntity,
   astHighlightedLine,
-  focusMode,
+
   onSelectEntity,
   onHoverEntity,
   breakpoints = new Set(),
@@ -237,7 +237,7 @@ const AtlasTimelineScene = ({
                 layout
                 layoutId={`frame:${frame.id}`}
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: focusMode && !isTop ? 0.35 : 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={motionTokens.sceneSpring}
                 className={cn(
                   'rounded-2xl border border-atlas-muted/25 bg-atlas-surface/70 p-3',

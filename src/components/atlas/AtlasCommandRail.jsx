@@ -1,35 +1,14 @@
 import { motion } from 'framer-motion'
-import {
-  ArrowLeft,
-  ArrowRight,
-  BookOpenText,
-  Bug,
-  Compass,
-  Focus,
-  Pause,
-  Play,
-  RotateCcw,
-  Search,
-} from 'lucide-react'
+import { ArrowLeft, ArrowRight, Pause, Play, RotateCcw } from 'lucide-react'
 import { motionTokens } from '../../atlas/motion'
 import { cn } from '../../utils/cn'
 
-const modes = [
-  { id: 'explore', label: 'Explore', icon: Compass },
-  { id: 'story', label: 'Story', icon: BookOpenText },
-  { id: 'debug', label: 'Debug', icon: Bug },
-]
-
+// Tabs to show — removed: Tree/Graph Diagram, Memory Graph, Call Tree, Scopes
 const views = [
   { id: 'timeline', label: 'Timeline' },
-  { id: 'structure', label: 'Tree/Graph Diagram' },
   { id: 'compare', label: 'Dual Comparison' },
-  { id: 'memory', label: 'Memory Graph' },
-  { id: 'grid', label: '2D Grid' },
-  { id: 'callTree', label: 'Call Tree' },
   { id: 'complexity', label: 'Complexity Analysis' },
   { id: 'ast', label: 'AST Explorer' },
-  { id: 'scope', label: 'Scopes' },
 ]
 
 const buttonClass =
@@ -45,8 +24,6 @@ const AtlasCommandRail = ({
   onStepBack,
   onReset,
   onSpeedChange,
-  mode,
-  onModeChange,
   view,
   onViewChange,
   selectedLanguage,
@@ -55,20 +32,15 @@ const AtlasCommandRail = ({
   selectedExample,
   examples,
   onLoadExample,
-  searchValue,
-  onSearchChange,
-  onFindVariable,
-  focusMode,
-  onToggleFocusMode,
-  beginnerMode,
-  onToggleBeginnerMode,
   breakpoints = new Set(),
   watchlist = new Set(),
 }) => {
   return (
     <div className="atlas-surface px-4 py-3">
+      {/* Row 1: Controls */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="mr-2 flex items-center gap-2">
+        {/* Playback buttons */}
+        <div className="flex items-center gap-2">
           <motion.button
             type="button"
             whileTap={{ scale: 0.97 }}
@@ -76,6 +48,7 @@ const AtlasCommandRail = ({
             className={cn(buttonClass, canRun && !isRunning && 'border-atlas-brand/50 bg-atlas-brand/20 text-atlas-text')}
             onClick={onRun}
             disabled={!canRun || isRunning}
+            id="btn-run"
           >
             <Play size={14} />
             Run
@@ -87,24 +60,26 @@ const AtlasCommandRail = ({
             className={cn(buttonClass, isRunning && 'border-atlas-ember/40 bg-atlas-ember/20')}
             onClick={onPause}
             disabled={!isRunning}
+            id="btn-pause"
           >
             <Pause size={14} />
             Pause
           </motion.button>
-          <button type="button" className={buttonClass} onClick={onStepBack} disabled={isRunning || !canRun}>
+          <button type="button" id="btn-back" className={buttonClass} onClick={onStepBack} disabled={isRunning || !canRun}>
             <ArrowLeft size={14} />
             Back
           </button>
-          <button type="button" className={buttonClass} onClick={onStep} disabled={isRunning || !canRun}>
+          <button type="button" id="btn-next" className={buttonClass} onClick={onStep} disabled={isRunning || !canRun}>
             <ArrowRight size={14} />
             Next
           </button>
-          <button type="button" className={buttonClass} onClick={onReset}>
+          <button type="button" id="btn-reset" className={buttonClass} onClick={onReset}>
             <RotateCcw size={14} />
             Reset
           </button>
         </div>
 
+        {/* Speed */}
         <div className="rounded-xl border border-atlas-muted/25 bg-atlas-surface/60 px-3 py-2 text-xs text-atlas-muted">
           Speed
           <input
@@ -119,141 +94,94 @@ const AtlasCommandRail = ({
           <span className="font-mono text-atlas-text">{speed.toFixed(2)}x</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-atlas-muted/25 bg-atlas-surface/60 px-2 py-1">
-          {modes.map((item) => {
-            const Icon = item.icon
-            const active = mode === item.id
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onModeChange(item.id)}
-                className={cn(
-                  'inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs transition',
-                  active ? 'bg-atlas-brand/25 text-atlas-text' : 'text-atlas-muted hover:bg-atlas-elev/70',
-                )}
-              >
-                <Icon size={13} />
-                {item.label}
-              </button>
-            )
-          })}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-atlas-muted/25 bg-atlas-surface/60 px-2 py-1">
-          {views.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onViewChange(item.id)}
-              className={cn(
-                'rounded-lg px-2.5 py-1.5 text-xs transition',
-                view === item.id ? 'bg-atlas-elev text-atlas-text' : 'text-atlas-muted hover:bg-atlas-elev/70',
-              )}
-            >
-              {item.label}
-            </button>
+        {/* Language picker */}
+        <select
+          value={selectedLanguage}
+          onChange={(e) => onLanguageChange(e.target.value)}
+          className="rounded-xl border border-atlas-muted/25 bg-atlas-surface px-3 py-2 text-xs text-atlas-text outline-none"
+          id="select-language"
+        >
+          {languages.map((lang) => (
+            <option key={lang.id} value={lang.id}>{lang.label}</option>
           ))}
-        </div>
+        </select>
 
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          <div className="relative">
-            <Search size={13} className="pointer-events-none absolute left-2.5 top-2.5 text-atlas-muted" />
-            <input
-              value={searchValue}
-              onChange={(event) => onSearchChange(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') onFindVariable()
-              }}
-              placeholder="Focus variable..."
-              className="w-44 rounded-xl border border-atlas-muted/25 bg-atlas-surface px-8 py-2 text-xs text-atlas-text outline-none placeholder:text-atlas-muted/70 focus:border-atlas-brand/50"
-            />
+        {/* Status badges */}
+        <div className="ml-auto flex items-center gap-2">
+          {breakpoints.size > 0 && (
+            <div className="rounded-lg border border-red-500/40 bg-red-500/20 px-2.5 py-1 text-xs text-red-200 font-mono">
+              Breakpoints: <span className="font-bold">{breakpoints.size}</span>
+            </div>
+          )}
+          {watchlist.size > 0 && (
+            <div className="rounded-lg border border-atlas-brand/40 bg-atlas-brand/20 px-2.5 py-1 text-xs text-atlas-text font-mono">
+              Watchlist: <span className="font-bold">{watchlist.size}</span>
+            </div>
+          )}
+
+          {/* Example picker */}
+          <div className="flex items-center gap-2 rounded-xl border border-atlas-muted/25 bg-atlas-surface/60 px-2 py-1">
+            <span className="text-[11px] text-atlas-muted">Example</span>
+            <select
+              className="max-w-56 rounded-md border border-atlas-muted/25 bg-atlas-surface px-2 py-1 text-xs text-atlas-text outline-none"
+              value={selectedExample}
+              onChange={(event) => onLoadExample(event.target.value)}
+              id="select-example"
+            >
+              {Object.entries(
+                examples.reduce((acc, example) => {
+                  const cat = example.category || 'other'
+                  if (!acc[cat]) acc[cat] = []
+                  acc[cat].push(example)
+                  return acc
+                }, {})
+              ).map(([catKey, catExamples]) => {
+                const catLabelMap = {
+                  'sorting': '🔀 Sorting Algorithms',
+                  'searching': '🔍 Searching & Two Pointers',
+                  'linked-lists': '🔗 Linked Lists',
+                  'trees-recursion': '🌲 Trees & Recursion',
+                  'graphs-matrix': '🌐 Graphs & Matrix',
+                  'stacks-queues': '🥞 Stacks & Queues',
+                  'dp': '🧩 Dynamic Programming',
+                }
+                const groupLabel = catLabelMap[catKey] || catKey.toUpperCase()
+                return (
+                  <optgroup key={catKey} label={groupLabel}>
+                    {catExamples.map((example) => (
+                      <option key={example.id} value={example.id}>
+                        {example.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                )
+              })}
+            </select>
           </div>
-          <button type="button" onClick={onFindVariable} className={buttonClass}>
-            Find
-          </button>
-
-          <button
-            type="button"
-            onClick={onToggleFocusMode}
-            className={cn(buttonClass, focusMode && 'border-atlas-brand/45 bg-atlas-brand/20')}
-          >
-            <Focus size={13} />
-            Focus
-          </button>
-
-          <button
-            type="button"
-            onClick={onToggleBeginnerMode}
-            className={cn(buttonClass, beginnerMode && 'border-atlas-loop/45 bg-atlas-loop/20')}
-          >
-            Beginner
-          </button>
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-3">
-        <div className="rounded-lg border border-atlas-muted/25 bg-atlas-surface/60 px-3 py-1 text-xs text-atlas-muted font-mono">
-          Engine: <span className="text-atlas-brand font-semibold">JavaScript (Native AST)</span>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            if (typeof window !== 'undefined' && window.__sharePermalink) {
-              window.__sharePermalink()
-            }
-          }}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-atlas-brand/40 bg-atlas-brand/20 px-3 py-1.5 text-xs text-atlas-text transition hover:bg-atlas-brand/30"
-          title="Share compressed URL permalink snapshot"
-        >
-          Share Snapshot
-        </button>
-        {breakpoints.size > 0 && (
-          <div className="rounded-lg border border-red-500/40 bg-red-500/20 px-2.5 py-1 text-xs text-red-200 font-mono">
-            Breakpoints: <span className="font-bold">{breakpoints.size}</span>
-          </div>
-        )}
-        {watchlist.size > 0 && (
-          <div className="rounded-lg border border-atlas-brand/40 bg-atlas-brand/20 px-2.5 py-1 text-xs text-atlas-text font-mono">
-            Watchlist: <span className="font-bold">{watchlist.size}</span>
-          </div>
-        )}
-        <div className="rounded-lg border border-atlas-muted/25 bg-atlas-surface/60 px-2 py-1">
-          <span className="mr-2 text-[11px] text-atlas-muted">Example</span>
-          <select
-            className="max-w-64 rounded-md border border-atlas-muted/25 bg-atlas-surface px-2 py-1 text-xs text-atlas-text outline-none"
-            value={selectedExample}
-            onChange={(event) => onLoadExample(event.target.value)}
+      {/* Row 2: View tabs */}
+      <div className="mt-3 flex flex-wrap items-center gap-1">
+        {views.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            id={`tab-${item.id}`}
+            onClick={() => onViewChange(item.id)}
+            className={cn(
+              'rounded-lg px-3 py-1.5 text-xs font-medium transition',
+              view === item.id
+                ? 'bg-atlas-brand/25 text-atlas-text border border-atlas-brand/40'
+                : 'text-atlas-muted hover:bg-atlas-elev/70 border border-transparent',
+            )}
           >
-            {Object.entries(
-              examples.reduce((acc, example) => {
-                const cat = example.category || 'other'
-                if (!acc[cat]) acc[cat] = []
-                acc[cat].push(example)
-                return acc
-              }, {})
-            ).map(([catKey, catExamples]) => {
-              const catLabelMap = {
-                'sorting': '🔀 1. Sorting Algorithms',
-                'searching': '🔍 2. Searching & Two Pointers',
-                'linked-lists': '🔗 3. Linked Lists',
-                'trees-recursion': '🌲 4. Trees & Recursion',
-                'graphs-matrix': '🌐 5. Graphs & 2D Matrix',
-                'stacks-queues': '🥞 6. Stacks & Queues',
-                'dp': '🧩 7. Dynamic Programming',
-              }
-              const groupLabel = catLabelMap[catKey] || catKey.toUpperCase()
-              return (
-                <optgroup key={catKey} label={groupLabel}>
-                  {catExamples.map((example) => (
-                    <option key={example.id} value={example.id}>
-                      {example.label}
-                    </option>
-                  ))}
-                </optgroup>
-              )
-            })}
-          </select>
+            {item.label}
+          </button>
+        ))}
+
+        <div className="ml-auto rounded-lg border border-atlas-muted/20 bg-atlas-surface/50 px-3 py-1 text-[11px] font-mono text-atlas-muted">
+          Engine: <span className="text-atlas-brand font-semibold">JavaScript (Native AST)</span>
         </div>
       </div>
     </div>

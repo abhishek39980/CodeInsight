@@ -1040,9 +1040,9 @@ const execStatement = (node, env, runtime) => {
           }, node)
 
           const signal = execStatement(node.body, loopEnv, runtime)
-          if (signal?.type === 'return') {
-            return signal
-          }
+          if (signal?.type === 'return') return signal
+          if (signal?.type === 'break') break
+          // continue: skip to update
           if (node.update) {
             evalExpression(node.update, loopEnv, runtime)
           }
@@ -1074,9 +1074,9 @@ const execStatement = (node, env, runtime) => {
           }, node)
 
           const signal = execStatement(node.body, loopEnv, runtime)
-          if (signal?.type === 'return') {
-            return signal
-          }
+          if (signal?.type === 'return') return signal
+          if (signal?.type === 'break') break
+          // continue: go back to condition check
         }
 
         commitStep(runtime, {
@@ -1091,10 +1091,130 @@ const execStatement = (node, env, runtime) => {
       }
     }
 
+    case 'DoWhileStatement': {
+      const loopEnv = runtime.createEnv(env, 'Do-While Loop', 'loop')
+      let iteration = 0
+      try {
+        do {
+          iteration += 1
+          commitStep(runtime, {
+            line,
+            event: `Do-while iteration ${iteration}`,
+            eventType: 'loop',
+            meta: { loopType: 'dowhile', iteration, condition: true },
+          }, node)
+          const signal = execStatement(node.body, loopEnv, runtime)
+          if (signal?.type === 'return') return signal
+          if (signal?.type === 'break') break
+        } while (truthy(evalExpression(node.test, loopEnv, runtime)))
+        return null
+      } finally {
+        runtime.closeEnv(loopEnv)
+      }
+    }
+
+    case 'ForOfStatement': {
+      const iterVal = evalExpression(node.right, env, runtime)
+      const items = Array.isArray(iterVal) ? iterVal : (typeof iterVal === 'string' ? [...iterVal] : [])
+      const loopEnv = runtime.createEnv(env, 'For-Of Loop', 'loop')
+      try {
+        for (let i = 0; i < items.length; i++) {
+          const varName = node.left.declarations?.[0]?.id?.name || node.left.name || '_v'
+          loopEnv.declare(varName, items[i])
+          commitStep(runtime, {
+            line,
+            event: `for-of iteration ${i + 1}: ${varName} = ${JSON.stringify(items[i])}`,
+            eventType: 'loop',
+            meta: { loopType: 'forof', iteration: i + 1, condition: true },
+          }, node)
+          const signal = execStatement(node.body, loopEnv, runtime)
+          if (signal?.type === 'return') return signal
+          if (signal?.type === 'break') break
+        }
+        return null
+      } finally {
+        runtime.closeEnv(loopEnv)
+      }
+    }
+
+    case 'ForInStatement': {
+      const iterObj = evalExpression(node.right, env, runtime)
+      const keys = iterObj && typeof iterObj === 'object' ? Object.keys(iterObj) : []
+      const loopEnv = runtime.createEnv(env, 'For-In Loop', 'loop')
+      try {
+        for (let i = 0; i < keys.length; i++) {
+          const varName = node.left.declarations?.[0]?.id?.name || node.left.name || '_k'
+          loopEnv.declare(varName, keys[i])
+          commitStep(runtime, {
+            line,
+            event: `for-in iteration ${i + 1}: ${varName} = "${keys[i]}"`,
+            eventType: 'loop',
+            meta: { loopType: 'forin', iteration: i + 1, condition: true },
+          }, node)
+          const signal = execStatement(node.body, loopEnv, runtime)
+          if (signal?.type === 'return') return signal
+          if (signal?.type === 'break') break
+        }
+        return null
+      } finally {
+        runtime.closeEnv(loopEnv)
+      }
+    }
+
+    case 'SwitchStatement': {
+      const discriminant = evalExpression(node.discriminant, env, runtime)
+      commitStep(runtime, {
+        line,
+        event: `Switch on ${JSON.stringify(discriminant)}`,
+        eventType: 'branch',
+        meta: { switchValue: discriminant },
+      }, node)
+      let matched = false
+      for (const cs of node.cases) {
+        if (!matched) {
+          if (cs.test === null) {
+            matched = true // default
+          } else {
+            const testVal = evalExpression(cs.test, env, runtime)
+            if (testVal === discriminant) matched = true
+          }
+        }
+        if (matched) {
+          for (const stmt of cs.consequent) {
+            const signal = execStatement(stmt, env, runtime)
+            if (signal?.type === 'return') return signal
+            if (signal?.type === 'break') return null
+          }
+        }
+      }
+      return null
+    }
+
     case 'ReturnStatement': {
       const value = node.argument ? evalExpression(node.argument, env, runtime) : undefined
       return new FlowSignal('return', value)
     }
+
+    case 'BreakStatement':
+      commitStep(runtime, {
+        line,
+        event: 'break',
+        eventType: 'branch',
+        meta: { keyword: 'break' },
+      }, node)
+      return new FlowSignal('break', null)
+
+    case 'ContinueStatement':
+      commitStep(runtime, {
+        line,
+        event: 'continue',
+        eventType: 'branch',
+        meta: { keyword: 'continue' },
+      }, node)
+      return new FlowSignal('continue', null)
+
+    case 'LabeledStatement':
+      return execStatement(node.body, env, runtime)
 
     case 'TryStatement':
       try {

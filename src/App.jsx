@@ -5,12 +5,12 @@ import AtlasInspectorOrb from './components/atlas/AtlasInspectorOrb'
 import AtlasNarrativeDock from './components/atlas/AtlasNarrativeDock'
 import AtlasSceneCanvas from './components/atlas/AtlasSceneCanvas'
 import AtlasTimeRail from './components/atlas/AtlasTimeRail'
-import { encodePermalink, decodePermalink } from './utils/permalink'
+import { decodePermalink } from './utils/permalink'
 import { buildComplexityReport } from './engine/analysis/complexity'
 import { codeExamples, defaultExampleId, supportedLanguages } from './engine/examples'
 import { buildInspectorContext } from './engine/explainers'
 import { simulateExecution } from './engine/executor'
-import { buildStepCaption, isLowSignalStep } from './engine/story'
+import { buildStepCaption } from './engine/story'
 
 const getExampleById = (id) => codeExamples.find((example) => example.id === id) || codeExamples[0]
 const getFirstExampleByLanguage = (language) => codeExamples.find((example) => example.language === language)
@@ -18,37 +18,32 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
 
 function App() {
   const initial = getExampleById(defaultExampleId)
-  const initialResult = useMemo(() => simulateExecution(initial.code, initial.language), [])
-  const runtimeRef = useRef(initialResult)
+  const runtimeRef = useRef(null)
 
   const [selectedLanguage, setSelectedLanguage] = useState(initial.language)
   const [selectedExample, setSelectedExample] = useState(initial.id)
   const [code, setCode] = useState(initial.code)
-  const [steps, setSteps] = useState(initialResult.steps || [])
+  const [steps, setSteps] = useState([])
   const [stepIndex, setStepIndex] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [speed, setSpeed] = useState(1)
-  const [error, setError] = useState(initialResult.error || null)
+  const [error, setError] = useState(null)
   const [loadingExample, setLoadingExample] = useState(false)
-  const [isDirty, setIsDirty] = useState(false)
+  const [isDirty, setIsDirty] = useState(true)
   const [selection, setSelection] = useState(null)
   const [hoverEntity, setHoverEntity] = useState(null)
   const [bookmarks, setBookmarks] = useState(new Set())
-  const [mode, setMode] = useState('explore')
   const [view, setView] = useState('timeline')
-  const [focusMode, setFocusMode] = useState(false)
-  const [beginnerMode, setBeginnerMode] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
-  const [variableHistoryIndex, setVariableHistoryIndex] = useState(initialResult.variableHistoryIndex || {})
-  const [loopClusters, setLoopClusters] = useState(initialResult.loopClusters || [])
-  const [astArtifacts, setAstArtifacts] = useState(initialResult.astArtifacts || {
+  const [variableHistoryIndex, setVariableHistoryIndex] = useState({})
+  const [loopClusters, setLoopClusters] = useState([])
+  const [astArtifacts, setAstArtifacts] = useState({
     rootId: null,
     root: null,
     nodesById: {},
     lineToNodeIds: {},
     orderedNodeIds: [],
   })
-  const [complexityReport, setComplexityReport] = useState(() => buildComplexityReport(initialResult.astArtifacts?.root, initialResult.steps || [], initial.code))
+  const [complexityReport, setComplexityReport] = useState(null)
   const [synchronizationLayer, setSynchronizationLayer] = useState(null)
   const [runtimeMeta, setRuntimeMeta] = useState(null)
   const [pointerTags, setPointerTags] = useState(new Set())
@@ -104,11 +99,6 @@ function App() {
       lineToNodeIds: {},
       orderedNodeIds: [],
     })
-    
-    // Generate empirical Big-O regression complexity report
-    const empiricalReport = buildComplexityReport(result.astArtifacts?.root, result.steps || [], code)
-    setComplexityReport(empiricalReport)
-
     setSynchronizationLayer(result.synchronizationLayer || null)
     setRuntimeMeta(result.runtimeMeta || null)
     setStepIndex(0)
@@ -116,6 +106,18 @@ function App() {
     setBookmarks(new Set())
     setSelectedAstNodeId(null)
     setIsDirty(false)
+
+    // Defer complexity report — runs 4 extra simulations, must NOT block the render
+    const capturedCode = code
+    window.setTimeout(() => {
+      try {
+        const empiricalReport = buildComplexityReport(result.astArtifacts?.root, result.steps || [], capturedCode)
+        setComplexityReport(empiricalReport)
+      } catch {
+        // complexity analysis failed silently — non-critical
+      }
+    }, 200)
+
     return result
   }
 
@@ -136,8 +138,8 @@ function App() {
     if (permalink && permalink.code) {
       setCode(permalink.code)
       if (permalink.language) setSelectedLanguage(permalink.language)
+      setIsDirty(true)
     }
-    compileCode()
   }, [])
 
   const ensureCompiled = () => {
@@ -149,17 +151,11 @@ function App() {
 
   const findStepByDirection = useCallback((startIndex, direction) => {
     let cursor = startIndex + direction
-    const shouldFilterLowSignal = mode === 'story' && beginnerMode
-
     while (cursor >= 0 && cursor < steps.length) {
-      if (!shouldFilterLowSignal || !isLowSignalStep(steps[cursor])) {
-        return cursor
-      }
-      cursor += direction
+      return cursor
     }
-
     return clamp(cursor, 0, Math.max(0, steps.length - 1))
-  }, [beginnerMode, mode, steps])
+  }, [steps])
 
   const handleRun = (fromIndex = null) => {
     const result = ensureCompiled()
@@ -275,7 +271,6 @@ function App() {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag) || document.activeElement?.classList.contains('inputarea')) {
         return
       }
-
       if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault()
         setIsRunning((prev) => !prev)
@@ -285,17 +280,14 @@ function App() {
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault()
         handleStepBack()
-      } else if (e.key === 'r' || e.key === 'R') {
-        if (!e.ctrlKey && !e.metaKey) {
-          e.preventDefault()
-          handleReset()
-        }
+      } else if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault()
+        handleReset()
       }
     }
-
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleStep, handleStepBack, isRunning])
+  }, [handleStep, handleStepBack])
 
   const selectedEntityId = selection?.entityId || null
 
@@ -358,41 +350,6 @@ function App() {
     })
   }
 
-  const handleFindVariable = () => {
-    if (!searchValue.trim()) return
-    const query = searchValue.trim().toLowerCase()
-    const step = currentStep || steps[0]
-    const frameMatch = step?.callStack?.find((frame) =>
-      frame.vars.some((entry) => entry.name.toLowerCase().includes(query)),
-    )
-    const variableMatch = frameMatch?.vars.find((entry) => entry.name.toLowerCase().includes(query))
-
-    if (frameMatch && variableMatch) {
-      setSelection({
-        type: 'variable',
-        scope: frameMatch.name,
-        name: variableMatch.name,
-        label: `${frameMatch.name}.${variableMatch.name}`,
-        entityId: `var:${frameMatch.name}:${variableMatch.name}`,
-      })
-      setView('timeline')
-      setFocusMode(true)
-      return
-    }
-
-    const heapMatch = step?.heap?.find((node) => String(node.id).toLowerCase() === query.replace('#', ''))
-    if (heapMatch) {
-      setSelection({
-        type: 'heap',
-        id: heapMatch.id,
-        label: `#${heapMatch.id}`,
-        entityId: `heap:${heapMatch.id}`,
-      })
-      setView('memory')
-      setFocusMode(true)
-    }
-  }
-
   const milestone = useMemo(() => {
     if (!currentStep) return ''
     if (currentStep.eventType === 'loop' && currentStep.meta?.condition === false) {
@@ -435,8 +392,6 @@ function App() {
           onStepBack={handleStepBack}
           onReset={handleReset}
           onSpeedChange={setSpeed}
-          mode={mode}
-          onModeChange={setMode}
           view={view}
           onViewChange={setView}
           selectedLanguage={selectedLanguage}
@@ -445,13 +400,6 @@ function App() {
           selectedExample={selectedExample}
           examples={filteredExamples}
           onLoadExample={handleLoadExample}
-          searchValue={searchValue}
-          onSearchChange={setSearchValue}
-          onFindVariable={handleFindVariable}
-          focusMode={focusMode}
-          onToggleFocusMode={() => setFocusMode((value) => !value)}
-          beginnerMode={beginnerMode}
-          onToggleBeginnerMode={() => setBeginnerMode((value) => !value)}
           breakpoints={breakpoints}
           watchlist={watchlist}
         />
@@ -474,7 +422,7 @@ function App() {
             selectedEntity={selectedEntityId}
             hoverEntity={hoverEntity}
             pointerTags={pointerTags}
-            focusMode={focusMode}
+
             astArtifacts={astArtifacts}
             complexityReport={complexityReport}
             selectedAstNodeId={selectedAstNodeId}
@@ -489,8 +437,6 @@ function App() {
           />
 
           <AtlasNarrativeDock
-            mode={mode}
-            beginnerMode={beginnerMode}
             currentStep={currentStep}
             stepIndex={stepIndex}
             totalSteps={steps.length}
@@ -525,19 +471,6 @@ function App() {
       <AtlasInspectorOrb selected={selection} inspectorContext={inspectorContext} onSeekStep={onSeekStepById} />
 
       <AnimatePresence>
-        {isDirty ? (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            className="fixed right-6 top-6 rounded-xl border border-atlas-ember/35 bg-atlas-ember/20 px-3 py-2 text-xs text-atlas-text"
-          >
-            Code changed. Run to refresh Atlas execution.
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-
-      <AnimatePresence>
         {error ? (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -545,7 +478,7 @@ function App() {
             exit={{ opacity: 0, y: 12 }}
             className="fixed bottom-6 left-1/2 z-50 w-[min(680px,90vw)] -translate-x-1/2 rounded-2xl border border-atlas-error/45 bg-atlas-error/20 px-4 py-3 text-sm text-atlas-text"
           >
-            {buildStepCaption(currentStep, beginnerMode)}
+            <p className="font-medium">{buildStepCaption(currentStep, false)}</p>
             <p className="mt-1 text-xs text-atlas-muted">Error: {error}</p>
           </motion.div>
         ) : null}
