@@ -186,6 +186,7 @@ const AtlasTimelineScene = ({
             language={language}
             theme={THEME_ID}
             beforeMount={handleBeforeMount}
+            onMount={handleEditorDidMount}
             loading={
               <div className="flex h-full w-full flex-col items-center justify-center gap-2.5 font-mono text-xs text-atlas-muted bg-atlas-bg0/80">
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-atlas-brand border-t-transparent" />
