@@ -22,13 +22,13 @@ const modes = [
 
 const views = [
   { id: 'timeline', label: 'Timeline' },
+  { id: 'structure', label: 'Tree/Graph Diagram' },
+  { id: 'compare', label: 'Dual Comparison' },
   { id: 'memory', label: 'Memory Graph' },
   { id: 'grid', label: '2D Grid' },
-  { id: 'challenge', label: 'Challenge Arena' },
   { id: 'callTree', label: 'Call Tree' },
-  { id: 'eventLoop', label: 'Event Loop' },
-  { id: 'ast', label: 'AST' },
-  { id: 'complexity', label: 'Complexity' },
+  { id: 'complexity', label: 'Complexity Analysis' },
+  { id: 'ast', label: 'AST Explorer' },
   { id: 'scope', label: 'Scopes' },
 ]
 

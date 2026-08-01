@@ -1,9 +1,81 @@
 import { simulateExecution } from '../executor.js'
 
 /**
- * Fits operation counts (N, Ops) against standard Big-O growth functions
- * using linear least-squares regression to derive empirical time complexity.
+ * Theoretical Big-O database mapping code patterns / algorithms to exact specs.
  */
+const theoreticalDatabase = [
+  {
+    pattern: /mergeSort|function merge/i,
+    name: 'Merge Sort',
+    bestTime: 'O(N log N)',
+    avgTime: 'O(N log N)',
+    worstTime: 'O(N log N)',
+    space: 'O(N)',
+    recurrence: 'T(N) = 2T(N/2) + O(N)',
+    explanation: 'Merge Sort recursively divides the array into 2 halves until sub-arrays have length 1 (O(log N) tree depth), then merges sorted halves linearly in O(N) work per depth level.',
+  },
+  {
+    pattern: /quickSort/i,
+    name: 'Quick Sort',
+    bestTime: 'O(N log N)',
+    avgTime: 'O(N log N)',
+    worstTime: 'O(N^2)',
+    space: 'O(log N)',
+    recurrence: 'T(N) = T(K) + T(N-K-1) + O(N)',
+    explanation: 'Quick Sort chooses a pivot element and partitions the array. On average, balanced pivots yield O(N log N) time; unbalanced pivots (already sorted arrays) yield O(N^2) worst case.',
+  },
+  {
+    pattern: /binarySearch/i,
+    name: 'Binary Search',
+    bestTime: 'O(1)',
+    avgTime: 'O(log N)',
+    worstTime: 'O(log N)',
+    space: 'O(1)',
+    recurrence: 'T(N) = T(N/2) + O(1)',
+    explanation: 'Binary Search halves the search interval on every step. Comparing the middle element with the target eliminates half the remaining elements per iteration.',
+  },
+  {
+    pattern: /bubbleSort/i,
+    name: 'Bubble Sort',
+    bestTime: 'O(N)',
+    avgTime: 'O(N^2)',
+    worstTime: 'O(N^2)',
+    space: 'O(1)',
+    recurrence: 'T(N) = T(N-1) + O(N)',
+    explanation: 'Bubble Sort repeatedly steps through the list, comparing adjacent elements and swapping them if out of order across nested loops.',
+  },
+  {
+    pattern: /fibMemo/i,
+    name: 'Fibonacci (Memoized DP)',
+    bestTime: 'O(N)',
+    avgTime: 'O(N)',
+    worstTime: 'O(N)',
+    space: 'O(N)',
+    recurrence: 'T(N) = T(N-1) + O(1)',
+    explanation: 'Top-down memoization stores previously computed Fibonacci values in an array/map, reducing exponential O(2^N) branch recursion down to linear O(N) state visits.',
+  },
+  {
+    pattern: /knapsack|dp\[i\]\[w\]/i,
+    name: '0/1 Knapsack (DP)',
+    bestTime: 'O(N * W)',
+    avgTime: 'O(N * W)',
+    worstTime: 'O(N * W)',
+    space: 'O(N * W)',
+    recurrence: 'DP[i][w] = max(DP[i-1][w], val + DP[i-1][w-wt])',
+    explanation: 'Fills a 2D dynamic programming table of size N x Capacity. Each cell takes O(1) time to evaluate by choosing to include or exclude item i.',
+  },
+  {
+    pattern: /reverseList|curr\.next/i,
+    name: 'Reverse Linked List',
+    bestTime: 'O(N)',
+    avgTime: 'O(N)',
+    worstTime: 'O(N)',
+    space: 'O(1)',
+    recurrence: 'T(N) = T(N-1) + O(1)',
+    explanation: 'Traverses each node in the singly linked list exactly once, reversing pointer directions using prev, curr, and next references.',
+  },
+]
+
 const fitGrowthCurve = (points) => {
   if (!points || points.length < 2) {
     return { class: 'O(1)', r2: 1.0, formula: 'f(N) = O(1)' }
@@ -12,7 +84,6 @@ const fitGrowthCurve = (points) => {
   const N = points.map((p) => p.n)
   const Y = points.map((p) => p.ops)
 
-  // Standard model functions
   const models = [
     { name: 'O(1)', fn: (n) => 1 },
     { name: 'O(log N)', fn: (n) => Math.log2(n) },
@@ -67,12 +138,10 @@ export const buildComplexityReport = (ast, steps, sourceCode = '') => {
   const dataPoints = []
   const nSizes = [5, 10, 20, 40]
 
-  // Empirical test run across input sizes N
   nSizes.forEach((n) => {
     let ops = 0
     let peakMem = 0
 
-    // Check if code contains an array variable like `[5, 2, 8, ...]` or `numbers` to scale
     let scaledCode = sourceCode
     if (sourceCode.includes('arr =') || sourceCode.includes('numbers =')) {
       const sampleArray = Array.from({ length: n }, (_, i) => Math.floor(Math.sin(i + 1) * 100))
@@ -95,12 +164,23 @@ export const buildComplexityReport = (ast, steps, sourceCode = '') => {
   const timeFit = fitGrowthCurve(dataPoints)
   const spaceFit = fitGrowthCurve(dataPoints.map((p) => ({ n: p.n, ops: p.memory })))
 
+  const theoretical = theoreticalDatabase.find((item) => item.pattern.test(sourceCode)) || {
+    name: 'Custom Algorithm',
+    bestTime: timeFit.class,
+    avgTime: timeFit.class,
+    worstTime: timeFit.class,
+    space: spaceFit.class,
+    recurrence: 'T(N) = T(N-1) + O(1)',
+    explanation: 'Operation scaling measured dynamically via AST tree-walk interpreter over scaled input sizes N=[5, 10, 20, 40].',
+  }
+
   return {
     estimatedTime: timeFit.class,
     estimatedSpace: spaceFit.class,
     empiricalFormula: timeFit.formula,
     rSquared: timeFit.r2,
-    reasoning: `Empirical regression fit over N=[5, 10, 20, 40] yields R² = ${(timeFit.r2 * 100).toFixed(1)}% correlation with ${timeFit.class}.`,
+    reasoning: `Empirical regression fit yields R² = ${(timeFit.r2 * 100).toFixed(1)}% correlation with ${timeFit.class}.`,
+    theoretical,
     dataPoints,
     graphs: {
       operationsVsN: dataPoints.map((p) => ({ n: p.n, ops: p.ops })),

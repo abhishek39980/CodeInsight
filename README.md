@@ -32,11 +32,9 @@ Every technology listed below is genuinely integrated into the codebase with evi
 
 ## ✨ Core Features
 
-- **Real AST Step-Walk Interpreter:** Parses JavaScript source code with Acorn and executes statements sequentially, capturing full state snapshots at every line.
-- **Reachability-Based Garbage Collection:** Live heap node analysis classifying memory as **Active** (on call stack), **Closure** (scoped environment), or **Unreachable** (garbage collection candidate).
-- **Empirical Big-O Complexity Engine:** Measures actual operation counts across scaled input sizes ($N = 5, 10, 20, 40$) and derives Big-O growth curves empirically via least-squares curve fitting.
-- **Execution Safeguards:** Enforces an explicit 1,000-step loop cap and a 100-frame recursion stack depth limit to prevent browser freezes.
-- **Synchronized Scrubber:** Scrub backward and forward through execution history with keyboard hotkey support (`Space`, `Right Arrow`, `Left Arrow`, `R`).
+- **Interactive Auto-Layout Tree & Graph Renderer:** Auto-detects binary search trees (`{ value, left, right }`), linked lists (`{ value, next }`), and graph structures in memory, rendering textbook-style SVG node diagrams with live highlights.
+- **Side-by-Side Dual Algorithm Comparison View:** Executes two algorithms concurrently (e.g., QuickSort vs. BubbleSort) under a single synchronized timeline scrubber to compare operation counts and stack depth metrics.
+- **Big-O Complexity & Theoretical Explanation Tab:** Displays theoretical specs (Best/Average/Worst case, Auxiliary Space), recurrence relations (e.g., $T(N) = 2T(N/2) + O(N)$), detailed explanations, and empirical regression curves.
 - **Interactive Line Breakpoints:** Click any line number in Monaco Editor to set breakpoints. Execution automatically pauses when hitting a breakpoint.
 - **Pinned Variable Watchlist:** Pin specific variables to monitor their step-by-step value progression, previous state, and mutation deltas in real time.
 - **Permalink Sharing:** Share execution states, custom inputs, and precise step indices via LZ-string compressed URL hash links.

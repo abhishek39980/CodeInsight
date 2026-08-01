@@ -7,18 +7,19 @@ import AtlasMemoryGraphScene from './AtlasMemoryGraphScene'
 import AtlasScopeScene from './AtlasScopeScene'
 import AtlasAstScene from './AtlasAstScene'
 import AtlasTimelineScene from './AtlasTimelineScene'
+import AtlasStructureRenderer from './AtlasStructureRenderer'
+import AtlasCompareScene from './AtlasCompareScene'
 import AtlasGridScene from './AtlasGridScene'
-import AtlasChallengePanel from './AtlasChallengePanel'
 
 const viewLabel = {
   timeline: 'Timeline View',
+  structure: 'Tree & Graph Auto-Layout Diagram',
+  compare: 'Dual Algorithm Comparison View',
   memory: 'Memory Graph View',
   grid: '2D Grid & Matrix View',
-  challenge: 'Challenge Arena View',
   callTree: 'Call Tree View',
-  eventLoop: 'Event Loop View',
-  ast: 'AST View',
-  complexity: 'Complexity View',
+  ast: 'AST Explorer View',
+  complexity: 'Complexity & Big-O Analysis View',
   scope: 'Scope View',
 }
 
@@ -85,6 +86,12 @@ const AtlasSceneCanvas = ({
               breakpoints={breakpoints}
               onToggleBreakpoint={onToggleBreakpoint}
             />
+          ) : null}
+          {view === 'structure' ? (
+            <AtlasStructureRenderer currentStep={currentStep} />
+          ) : null}
+          {view === 'compare' ? (
+            <AtlasCompareScene />
           ) : null}
           {view === 'memory' ? (
             <AtlasMemoryGraphScene
