@@ -44,6 +44,8 @@ const AtlasSceneCanvas = ({
   onTogglePointerTag,
   onSelectEntity,
   onHoverEntity,
+  breakpoints = new Set(),
+  onToggleBreakpoint,
 }) => {
   return (
     <div className="flex min-h-[640px] flex-col gap-3">
@@ -80,6 +82,8 @@ const AtlasSceneCanvas = ({
               focusMode={focusMode}
               onSelectEntity={onSelectEntity}
               onHoverEntity={onHoverEntity}
+              breakpoints={breakpoints}
+              onToggleBreakpoint={onToggleBreakpoint}
             />
           ) : null}
           {view === 'memory' ? (

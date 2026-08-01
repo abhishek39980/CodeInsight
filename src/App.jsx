@@ -49,9 +49,28 @@ function App() {
   })
   const [complexityReport, setComplexityReport] = useState(null)
   const [synchronizationLayer, setSynchronizationLayer] = useState(null)
-  const [runtimeMeta, setRuntimeMeta] = useState(null)
   const [pointerTags, setPointerTags] = useState(new Set())
   const [selectedAstNodeId, setSelectedAstNodeId] = useState(null)
+  const [breakpoints, setBreakpoints] = useState(new Set())
+  const [watchlist, setWatchlist] = useState(new Set())
+
+  const handleToggleBreakpoint = useCallback((line) => {
+    setBreakpoints((prev) => {
+      const next = new Set(prev)
+      if (next.has(line)) next.delete(line)
+      else next.add(line)
+      return next
+    })
+  }, [])
+
+  const handleToggleWatchlist = useCallback((varName) => {
+    setWatchlist((prev) => {
+      const next = new Set(prev)
+      if (next.has(varName)) next.delete(varName)
+      else next.add(varName)
+      return next
+    })
+  }, [])
 
   const filteredExamples = useMemo(
     () => codeExamples.filter((example) => example.language === selectedLanguage),
@@ -228,6 +247,13 @@ function App() {
         }
 
         const nextPlayable = findStepByDirection(current, 1)
+        const nextStepObj = steps[nextPlayable]
+
+        if (nextStepObj && breakpoints.has(nextStepObj.line) && current !== nextPlayable) {
+          setIsRunning(false)
+          return nextPlayable
+        }
+
         if (nextPlayable <= current || nextPlayable >= steps.length - 1) {
           if (nextPlayable >= steps.length - 1) {
             setIsRunning(false)
@@ -239,7 +265,7 @@ function App() {
     }, ms)
 
     return () => window.clearInterval(timer)
-  }, [findStepByDirection, isRunning, speed, steps])
+  }, [breakpoints, findStepByDirection, isRunning, speed, steps])
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -424,6 +450,8 @@ function App() {
           onToggleFocusMode={() => setFocusMode((value) => !value)}
           beginnerMode={beginnerMode}
           onToggleBeginnerMode={() => setBeginnerMode((value) => !value)}
+          breakpoints={breakpoints}
+          watchlist={watchlist}
         />
 
         <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_370px]">
@@ -454,6 +482,8 @@ function App() {
             onTogglePointerTag={onTogglePointerTag}
             onSelectEntity={setSelection}
             onHoverEntity={setHoverEntity}
+            breakpoints={breakpoints}
+            onToggleBreakpoint={handleToggleBreakpoint}
           />
 
           <AtlasNarrativeDock
@@ -468,6 +498,8 @@ function App() {
             onSeekStep={onSeekStepById}
             onClearSelection={() => setSelection(null)}
             milestone={milestone}
+            watchlist={watchlist}
+            onToggleWatchlist={handleToggleWatchlist}
           />
         </div>
 

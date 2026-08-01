@@ -90,6 +90,16 @@ textarea {
   background: linear-gradient(90deg, rgba(143, 124, 255, 0.2), rgba(143, 124, 255, 0.02));
 }
 
+.codeinsight-breakpoint-glyph {
+  background: #ff4d4d;
+  border-radius: 50%;
+  width: 10px !important;
+  height: 10px !important;
+  margin-left: 5px;
+  margin-top: 7px;
+  box-shadow: 0 0 10px #ff4d4d;
+}
+
 .atlas-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(154, 167, 183, 0.5) transparent;

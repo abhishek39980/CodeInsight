@@ -37,6 +37,8 @@ Every technology listed below is genuinely integrated into the codebase with evi
 - **Empirical Big-O Complexity Engine:** Measures actual operation counts across scaled input sizes ($N = 5, 10, 20, 40$) and derives Big-O growth curves empirically via least-squares curve fitting.
 - **Execution Safeguards:** Enforces an explicit 1,000-step loop cap and a 100-frame recursion stack depth limit to prevent browser freezes.
 - **Synchronized Scrubber:** Scrub backward and forward through execution history with keyboard hotkey support (`Space`, `Right Arrow`, `Left Arrow`, `R`).
+- **Interactive Line Breakpoints:** Click any line number in Monaco Editor to set breakpoints. Execution automatically pauses when hitting a breakpoint.
+- **Pinned Variable Watchlist:** Pin specific variables to monitor their step-by-step value progression, previous state, and mutation deltas in real time.
 - **Permalink Sharing:** Share execution states, custom inputs, and precise step indices via LZ-string compressed URL hash links.
 - **Comprehensive DSA Suite:** 27 runnable canonical JavaScript algorithms categorized across 7 core categories.
 

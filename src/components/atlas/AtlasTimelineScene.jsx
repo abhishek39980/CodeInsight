@@ -59,6 +59,8 @@ const AtlasTimelineScene = ({
   focusMode,
   onSelectEntity,
   onHoverEntity,
+  breakpoints = new Set(),
+  onToggleBreakpoint,
 }) => {
   const editorRef = useRef(null)
   const decorationsRef = useRef([])
@@ -122,18 +124,43 @@ const AtlasTimelineScene = ({
         }]
       : []
 
+    const breakpointDecorations = Array.from(breakpoints || []).map((line) => ({
+      range: {
+        startLineNumber: line,
+        startColumn: 1,
+        endLineNumber: line,
+        endColumn: 1,
+      },
+      options: { isWholeLine: false, glyphMarginClassName: 'codeinsight-breakpoint-glyph' },
+    }))
+
     decorationsRef.current = editor.deltaDecorations(
       decorationsRef.current,
-      [...ghostDecorations, ...mutatedDecorations, ...astDecoration, ...activeDecoration],
+      [...ghostDecorations, ...mutatedDecorations, ...astDecoration, ...activeDecoration, ...breakpointDecorations],
     )
 
     if (currentStep.line) {
       editor.revealLineInCenterIfOutsideViewport(currentStep.line, 0)
     }
-  }, [astHighlightedLine, currentStep, previousStep?.line, nextStep?.line])
+  }, [astHighlightedLine, currentStep, previousStep?.line, nextStep?.line, breakpoints])
 
   const handleBeforeMount = (monaco) => {
     monaco.editor.defineTheme(THEME_ID, atlasEditorTheme)
+  }
+
+  const handleEditorDidMount = (editor, monaco) => {
+    editorRef.current = editor
+    editor.onMouseDown((e) => {
+      if (
+        e.target.type === monaco.editor.MouseTargetType.GUTTER_LINE_NUMBERS ||
+        e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN
+      ) {
+        const line = e.target.position?.lineNumber
+        if (line && onToggleBreakpoint) {
+          onToggleBreakpoint(line)
+        }
+      }
+    })
   }
 
   const selectedTone = currentStep?.eventType ? eventTone[currentStep.eventType] || eventTone.execution : eventTone.execution
@@ -159,13 +186,11 @@ const AtlasTimelineScene = ({
             language={language}
             theme={THEME_ID}
             beforeMount={handleBeforeMount}
-            onMount={(editor) => {
-              editorRef.current = editor
-            }}
+            onMount={handleEditorDidMount}
             options={{
               minimap: { enabled: false },
               smoothScrolling: true,
-              glyphMargin: false,
+              glyphMargin: true,
               scrollBeyondLastLine: false,
               lineHeight: 22,
               fontSize: 14,

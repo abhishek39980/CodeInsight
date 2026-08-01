@@ -62,6 +62,8 @@ const AtlasCommandRail = ({
   onToggleFocusMode,
   beginnerMode,
   onToggleBeginnerMode,
+  breakpoints = new Set(),
+  watchlist = new Set(),
 }) => {
   return (
     <div className="atlas-surface px-4 py-3">
@@ -206,6 +208,16 @@ const AtlasCommandRail = ({
         >
           Share Snapshot
         </button>
+        {breakpoints.size > 0 && (
+          <div className="rounded-lg border border-red-500/40 bg-red-500/20 px-2.5 py-1 text-xs text-red-200 font-mono">
+            Breakpoints: <span className="font-bold">{breakpoints.size}</span>
+          </div>
+        )}
+        {watchlist.size > 0 && (
+          <div className="rounded-lg border border-atlas-brand/40 bg-atlas-brand/20 px-2.5 py-1 text-xs text-atlas-text font-mono">
+            Watchlist: <span className="font-bold">{watchlist.size}</span>
+          </div>
+        )}
         <div className="rounded-lg border border-atlas-muted/25 bg-atlas-surface/60 px-2 py-1">
           <span className="mr-2 text-[11px] text-atlas-muted">Example</span>
           <select

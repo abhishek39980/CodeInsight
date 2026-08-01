@@ -5,8 +5,9 @@ import Panel from './Panel'
 
 const EDITOR_THEME = 'codeinsight-cyber'
 
-const EditorPanel = ({ code, onCodeChange, activeLine, loadingExample, language, hotLines = [], errorLine, isComplete }) => {
+const EditorPanel = ({ code, onCodeChange, activeLine, loadingExample, language, hotLines = [], errorLine, isComplete, breakpoints = new Set(), onToggleBreakpoint }) => {
   const editorRef = useRef(null)
+  const monacoRef = useRef(null)
   const decorationRef = useRef([])
   const [scrollTop, setScrollTop] = useState(0)
 
@@ -40,7 +41,6 @@ const EditorPanel = ({ code, onCodeChange, activeLine, loadingExample, language,
           options: {
             isWholeLine: true,
             className: 'codeinsight-active-line',
-            // removed glyph margin since we are using the 3D Cursor Drone
           },
         }]
       : []
@@ -60,18 +60,46 @@ const EditorPanel = ({ code, onCodeChange, activeLine, loadingExample, language,
         }]
       : []
 
-    decorationRef.current = editor.deltaDecorations(decorationRef.current, [...heatDecorations, ...activeDecoration, ...errorDecoration])
-    
-    // Smooth scroll to active line
-    if (activeLine) {
-      editor.revealLineInCenterIfOutsideViewport(activeLine, 0) // 0 = Smooth scrolling animation
-    }
-  }, [activeLine, hotLines, errorLine])
+    const breakpointDecorations = Array.from(breakpoints || []).map((line) => ({
+      range: {
+        startLineNumber: line,
+        startColumn: 1,
+        endLineNumber: line,
+        endColumn: 1,
+      },
+      options: {
+        isWholeLine: false,
+        glyphMarginClassName: 'codeinsight-breakpoint-glyph',
+      },
+    }))
 
-  const handleEditorDidMount = (editor) => {
+    decorationRef.current = editor.deltaDecorations(decorationRef.current, [
+      ...heatDecorations,
+      ...activeDecoration,
+      ...errorDecoration,
+      ...breakpointDecorations,
+    ])
+    
+    if (activeLine) {
+      editor.revealLineInCenterIfOutsideViewport(activeLine, 0)
+    }
+  }, [activeLine, hotLines, errorLine, breakpoints])
+
+  const handleEditorDidMount = (editor, monaco) => {
     editorRef.current = editor
+    monacoRef.current = monaco
+
     editor.onDidScrollChange((e) => {
       setScrollTop(e.scrollTop)
+    })
+
+    editor.onMouseDown((e) => {
+      if (e.target.type === monaco.editor.MouseTargetType.GUTTER_LINE_NUMBERS || e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
+        const line = e.target.position?.lineNumber
+        if (line && onToggleBreakpoint) {
+          onToggleBreakpoint(line)
+        }
+      }
     })
   }
 
@@ -128,7 +156,7 @@ const EditorPanel = ({ code, onCodeChange, activeLine, loadingExample, language,
             lineHeight: 24,
             smoothScrolling: true,
             padding: { top: 16, bottom: 20 },
-            glyphMargin: false,
+            glyphMargin: true,
             scrollBeyondLastLine: false,
             renderLineHighlight: 'all',
           }}
