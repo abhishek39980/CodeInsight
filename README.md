@@ -1,8 +1,13 @@
-# CodeInsight — Visual Code Execution Engine
+# CodeInsight — Interactive Visual DSA Learning & Optimization Platform
 
-CodeInsight is a 100% client-side JavaScript execution visualizer that converts source code into step-by-step interactive timelines, AST-driven state snapshots, and empirical Big-O complexity reports.
+CodeInsight is a modern, visually appealing **DSA Algorithm Learning Platform** designed to help engineers and students master canonical Data Structures and Algorithms visually.
 
-Built for engineers learning Data Structures & Algorithms (DSA) and for live technical interview preparation.
+The platform focuses on teaching:
+- **How** an algorithm works step-by-step
+- **Why** it works correctly
+- **Where** time & space complexity come from via visual growth models
+- **How** to optimize from brute force ➔ intermediate ➔ optimal interview solution
+- **When** to recognize algorithmic patterns in technical coding interviews
 
 > **Live Demo:** [codeinsight.vercel.app](https://codeinsight.vercel.app)
 
@@ -10,100 +15,67 @@ Built for engineers learning Data Structures & Algorithms (DSA) and for live tec
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
+| Component | Technology |
 |---|---|
 | **UI Framework** | React 19.2.4 |
 | **Build Tool** | Vite 8.0.0 |
 | **Code Editor** | Monaco Editor (`@monaco-editor/react` v4.7.0) |
-| **AST Parser** | Acorn v8.16.0 + Acorn-Walk v8.3.5 |
-| **Styling** | Tailwind CSS v3.4 + PostCSS |
+| **Styling** | Tailwind CSS v3.4 + PostCSS (Glassmorphism & dark mode) |
 | **Animations** | Framer Motion v12.37.0 |
 | **Icons** | Lucide React v0.577.0 |
-| **URL Compression** | LZ-String v1.5.0 |
 | **Testing** | Vitest v4.1.10 |
 
 ---
 
-## ✨ Features
+## ✨ Key Features & Vision
 
-### 🎬 Timeline Execution View
-- Step-by-step AST interpreter — every variable declaration, assignment, function call, loop iteration, and return is captured as an immutable snapshot
-- Monaco Editor with live syntax highlighting, active line decoration, and **clickable gutter breakpoints**
-- Playback controls: Run / Pause / Step Forward / Step Back / Reset with keyboard shortcuts (`Space`, `←`, `→`, `R`)
-- Adjustable playback speed (0.25× – 2×)
-- **Pinned Variable Watchlist** — pin variables to track step-by-step value progression and mutation deltas
-
-### 📊 Complexity Analysis View
-- Theoretical specs per algorithm: Best / Average / Worst time, Auxiliary Space, and Recurrence Relation
-- Detailed human-readable explanation of _why_ the complexity is what it is
-- Empirical growth curve estimated from captured execution steps via least-squares regression
-- Supports: Merge Sort, Quick Sort, Binary Search, Bubble Sort, Fibonacci DP, Knapsack DP, and more
-
-### ⚔️ Dual Algorithm Comparison View
-- Executes two algorithms (QuickSort vs. BubbleSort by default) lazily in background workers
-- Synchronized scrubber to compare operation counts and call stack depth side-by-side
-- Line-level active highlighting on both algorithm source panels simultaneously
-
-### 🌳 AST Explorer View
-- Interactive syntax tree of the parsed source code
-- Click any AST node to jump to the corresponding execution step
-- Syncs bidirectionally with the Timeline scrubber
-
-### 🔴 Breakpoints & Watchlist
-- Click any line number gutter to toggle a breakpoint — playback auto-pauses when hit
-- Type variable names into the Watchlist panel to monitor their live values
+### 🌟 1. Comprehensive Problem Catalog (~100 Canonical Problems across 24 Categories)
+Structured interactive interview problems categorized across:
+- **Arrays & Strings:** Two Sum, Best Time to Buy/Sell Stock, Maximum Subarray (Kadane's), Valid Anagram, etc.
+- **Sliding Window & Two Pointers:** Longest Substring Without Repeating Characters, Container With Most Water.
+- **Binary Search & Sorting:** Monotonic Search Space Bisection, Merge Sort, Quick Sort, Insertion Sort, Selection Sort, Bubble Sort.
+- **Linked Lists & Trees:** In-place Pointer Reversal, Cycle Detection (Floyd's), Binary Search Trees, LCA.
+- **Stacks & Queues:** LIFO Bracket Matching (Valid Parentheses), Min Stack, Monotonic Stacks.
+- **Dynamic Programming & Graphs:** 1D/2D Tabulation (Climbing Stairs, Knapsack, LCS), Number of Islands (Grid Flood Fill DFS/BFS).
 
 ---
 
-## 🏗️ Engine Architecture
-
-```text
-[Monaco Editor — source code input]
-        │
-        ▼
-[Acorn AST Parser — builds full AST with node locations]
-        │
-        ▼
-[Tree-Walk Interpreter]
-  ├─ Supports: var/let/const, if/else, for, while, do-while,
-  │            for-of, for-in, switch, break, continue,
-  │            functions, closures, recursion, try/catch/finally
-  ├─ Step Cap: 1,000 steps max
-  └─ Recursion Guard: 100 call frames max
-        │
-        ▼
-[Snapshot Builder]
-  ├─ Immutable per-step state: call stack, heap, variable bindings
-  └─ Reachability GC: Active / Closure / Unreachable classification
-        │
-        ▼
-[Visual Scenes]
-  Timeline │ Dual Comparison │ Complexity Analysis │ AST Explorer
-```
+### 🎬 2. Algorithm Visualizer & Learning Mode
+- **Interactive Visual Canvas:** Watch array elements, pointers, and variables update smoothly in real time.
+- **Learning Mode Coach:** Continuous human-readable explanation of **WHY** each step works (e.g., *"Why we move the left pointer"*, *"Why the complement was found in O(1) time"*).
+- **Interactive Monaco Editor:** Read, modify, and test optimal JavaScript (ES2024) solutions with live input editing.
 
 ---
 
-## 📚 Algorithm Suite (27 Canonical JS Algorithms)
-
-| # | Category | Algorithms |
-|---|---|---|
-| 1 | **Sorting** | Merge Sort, Quick Sort (Lomuto), Insertion Sort, Selection Sort, Bubble Sort |
-| 2 | **Searching & Two Pointers** | Binary Search (Iterative & Recursive), Two Sum, Container With Most Water, Sliding Window Max Sum |
-| 3 | **Linked Lists** | Reverse (Iterative & Recursive), Cycle Detection (Floyd's), Merge Two Sorted Lists |
-| 4 | **Trees & Recursion** | BST Insert & Search, Max Depth of Binary Tree, Fibonacci (Memoized), Subsets Backtracking |
-| 5 | **Graphs & Matrix** | 2D Grid BFS Walk, DFS Graph Traversal, Minimum Path Sum |
-| 6 | **Stacks & Queues** | Valid Parentheses, Queue (FIFO), Min Stack |
-| 7 | **Dynamic Programming** | 0/1 Knapsack (Tabulation), LCS, Climbing Stairs |
+### 💡 3. Optimization Coach & Pattern Recognition
+- **Brute Force ➔ Better ➔ Optimal Progression:** Every problem includes complete explanations, code, time/space complexity, pros, and cons for each approach.
+- **Optimization Coach:** Automatically explains **WHY** the brute force approach is slow (e.g., $O(N^2)$ nested loops) and visually demonstrates the key insight that transforms it into the optimal solution (e.g., $O(N)$ HashMap complement lookup or $O(N)$ Kadane scan).
+- **Pattern Recognition Coach:** Identifies the algorithmic pattern used (Sliding Window, Two Pointers, Hashing, Divide & Conquer, Dynamic Programming) and teaches **WHEN** to apply it in interviews.
 
 ---
 
-## 🚀 Local Setup
+### 📈 4. Visual Complexity & Space Coach
+- **Time Complexity Visualizer:** Animated visual breakdowns showing why $N \times N \to O(N^2)$, why Binary Search halving $N \to N/2 \to \log N$, and Merge Sort recurrence trees.
+- **Space Complexity Visualizer:** Tracks auxiliary memory allocations (HashMaps, recursion call stacks, visited arrays) with memory growth curves.
 
-### Prerequisites
-- **Node.js** v18.0.0 or higher
-- **npm** v9.0.0 or higher
+---
 
-### Run Locally
+### ⚔️ 5. Side-by-Side Solution Comparison
+- Split-screen comparison of Brute Force vs. Optimal solutions.
+- Compares simulated operation counts, memory usage, and structural tradeoffs side by side.
+
+---
+
+### 📊 6. Telemetry & Complexity Dashboard
+- Real-time counting of primitive DSA operations:
+  - **Comparisons** (`==`, `<`, `>`)
+  - **Assignments & Writes**
+  - **HashMap / Set Lookups**
+  - **Maximum Call Stack Depth**
+
+---
+
+## 🚀 Local Development & Setup
 
 ```bash
 # Clone the repository
@@ -113,10 +85,10 @@ cd CodeInsight
 # Install dependencies
 npm install
 
-# Start local development server (http://localhost:5173)
+# Start local development server (http://localhost:5173 or 3000)
 npm run dev
 
-# Run unit tests
+# Run Vitest test suite
 npm run test
 
 # Build production bundle
@@ -125,23 +97,6 @@ npm run build
 
 ---
 
-## 🎯 Technical Interview Defense
+## 🎯 Designed for Technical Interview Preparation
 
-Three core engineering challenges worth explaining:
-
-### 1. Reachability-Based GC in the AST Interpreter
-> *"Instead of relying on browser DevTools, I built a custom mark-and-sweep analyzer in `runtime.js`. During each step, the engine traverses active environment scopes from top-of-stack down to global scope, marks all reachable heap references, detects closures, and flags unreferenced object IDs as garbage-collection candidates in real time."*
-
-### 2. Step-Indexed Immutable Snapshotting
-> *"To support reverse stepping without re-running the interpreter, every statement evaluation creates an immutable snapshot of variable bindings, call-stack frames, and heap object states. Structural cloning isolates only mutated references between consecutive steps to keep memory usage bounded."*
-
-### 3. Non-blocking Big-O Estimation
-> *"Rather than running 4 separate simulations to build complexity data points (which froze the browser), I rewrote the complexity engine to estimate growth curves from the single captured execution via step-density extrapolation, then apply linear least-squares regression to the synthetic data points. This reduces simulation overhead from 5× down to 1×."*
-
----
-
-## 🌐 Language Support
-
-- **JavaScript (ES2024):** Fully supported — `var`/`let`/`const`, arrow functions, closures, recursion, `break`/`continue`, `for...of`, `for...in`, `switch`, `try`/`catch`/`finally`, template literals, spread/rest operators.
-
-*Python, C++, and Java stubs are intentionally omitted to guarantee 100% accurate, un-simulated AST state execution.*
+CodeInsight bridges the gap between static code solutions and intuitive visual understanding. Every feature is crafted to make Data Structures and Algorithms intuitive, visual, and memorable.

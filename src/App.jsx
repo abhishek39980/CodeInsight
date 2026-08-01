@@ -1,186 +1,90 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import AtlasCommandRail from './components/atlas/AtlasCommandRail'
-import AtlasInspectorOrb from './components/atlas/AtlasInspectorOrb'
-import AtlasNarrativeDock from './components/atlas/AtlasNarrativeDock'
-import AtlasSceneCanvas from './components/atlas/AtlasSceneCanvas'
-import AtlasTimeRail from './components/atlas/AtlasTimeRail'
-import { decodePermalink } from './utils/permalink'
-import { buildComplexityReport } from './engine/analysis/complexity'
-import { codeExamples, defaultExampleId, supportedLanguages } from './engine/examples'
-import { buildInspectorContext } from './engine/explainers'
+import { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Sparkles, BookOpen, Trophy, ArrowLeft, Terminal, LayoutGrid } from 'lucide-react'
+import DSACatalogHome from './components/dsa/DSACatalogHome'
+import DSAProblemHeader from './components/dsa/DSAProblemHeader'
+import DSATabNavigation from './components/dsa/DSATabNavigation'
+import DSALearningVisualizer from './components/dsa/DSALearningVisualizer'
+import DSAOptimizationCoach from './components/dsa/DSAOptimizationCoach'
+import DSAVisualComplexityCoach from './components/dsa/DSAVisualComplexityCoach'
+import DSACompareSolutions from './components/dsa/DSACompareSolutions'
+import DSAComplexityDashboard from './components/dsa/DSAComplexityDashboard'
+import { dsaProblems, getProblemById } from './engine/dsaProblems'
 import { simulateExecution } from './engine/executor'
-import { buildStepCaption } from './engine/story'
+import { cn } from './utils/cn'
 
-const getExampleById = (id) => codeExamples.find((example) => example.id === id) || codeExamples[0]
-const getFirstExampleByLanguage = (language) => codeExamples.find((example) => example.language === language)
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
-
-function App() {
-  const initial = getExampleById(defaultExampleId)
-  const runtimeRef = useRef(null)
-
-  const [selectedLanguage, setSelectedLanguage] = useState(initial.language)
-  const [selectedExample, setSelectedExample] = useState(initial.id)
-  const [code, setCode] = useState(initial.code)
+export default function App() {
+  const [currentView, setCurrentView] = useState('catalog') // 'catalog' | 'problem'
+  const [selectedProblemId, setSelectedProblemId] = useState('two-sum')
+  const [activeTab, setActiveTab] = useState('visualizer')
+  const [code, setCode] = useState('')
   const [steps, setSteps] = useState([])
   const [stepIndex, setStepIndex] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [speed, setSpeed] = useState(1)
-  const [error, setError] = useState(null)
-  const [loadingExample, setLoadingExample] = useState(false)
-  const [isDirty, setIsDirty] = useState(true)
-  const [selection, setSelection] = useState(null)
-  const [hoverEntity, setHoverEntity] = useState(null)
-  const [bookmarks, setBookmarks] = useState(new Set())
-  const [view, setView] = useState('timeline')
-  const [variableHistoryIndex, setVariableHistoryIndex] = useState({})
-  const [loopClusters, setLoopClusters] = useState([])
-  const [astArtifacts, setAstArtifacts] = useState({
-    rootId: null,
-    root: null,
-    nodesById: {},
-    lineToNodeIds: {},
-    orderedNodeIds: [],
-  })
-  const [complexityReport, setComplexityReport] = useState(null)
-  const [synchronizationLayer, setSynchronizationLayer] = useState(null)
-  const [runtimeMeta, setRuntimeMeta] = useState(null)
-  const [pointerTags, setPointerTags] = useState(new Set())
-  const [selectedAstNodeId, setSelectedAstNodeId] = useState(null)
-  const [breakpoints, setBreakpoints] = useState(new Set())
-  const [watchlist, setWatchlist] = useState(new Set())
 
-  const handleToggleBreakpoint = useCallback((line) => {
-    setBreakpoints((prev) => {
-      const next = new Set(prev)
-      if (next.has(line)) next.delete(line)
-      else next.add(line)
-      return next
-    })
-  }, [])
+  const currentProblem = getProblemById(selectedProblemId)
 
-  const handleToggleWatchlist = useCallback((varName) => {
-    setWatchlist((prev) => {
-      const next = new Set(prev)
-      if (next.has(varName)) next.delete(varName)
-      else next.add(varName)
-      return next
-    })
-  }, [])
-
-  const filteredExamples = useMemo(
-    () => codeExamples.filter((example) => example.language === selectedLanguage),
-    [selectedLanguage],
-  )
-
-  const currentStep = steps[stepIndex] || null
-  const previousStep = stepIndex > 0 ? steps[stepIndex - 1] : null
-  const nextStep = stepIndex < steps.length - 1 ? steps[stepIndex + 1] : null
-
-  const stepIndexById = useMemo(() => {
-    const map = new Map()
-    steps.forEach((step, index) => {
-      map.set(step.id, index)
-    })
-    return map
-  }, [steps])
-
-  const compileCode = () => {
-    const result = simulateExecution(code, selectedLanguage)
-    runtimeRef.current = result
-    setSteps(result.steps || [])
-    setVariableHistoryIndex(result.variableHistoryIndex || {})
-    setLoopClusters(result.loopClusters || [])
-    setAstArtifacts(result.astArtifacts || {
-      rootId: null,
-      root: null,
-      nodesById: {},
-      lineToNodeIds: {},
-      orderedNodeIds: [],
-    })
-    setSynchronizationLayer(result.synchronizationLayer || null)
-    setRuntimeMeta(result.runtimeMeta || null)
-    setStepIndex(0)
-    setError(result.error)
-    setBookmarks(new Set())
-    setSelectedAstNodeId(null)
-    setIsDirty(false)
-
-    // Defer complexity report — runs 4 extra simulations, must NOT block the render
-    const capturedCode = code
-    window.setTimeout(() => {
-      try {
-        const empiricalReport = buildComplexityReport(result.astArtifacts?.root, result.steps || [], capturedCode)
-        setComplexityReport(empiricalReport)
-      } catch {
-        // complexity analysis failed silently — non-critical
-      }
-    }, 200)
-
-    return result
-  }
-
+  // Initialize code when problem changes
   useEffect(() => {
-    window.__sharePermalink = () => {
-      const url = encodePermalink({ code, language: selectedLanguage, stepIndex })
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(url)
-        alert('Compressed snapshot permalink copied to clipboard!')
-      } else {
-        prompt('Copy permalink URL:', url)
-      }
-    }
-  }, [code, selectedLanguage, stepIndex])
-
-  useEffect(() => {
-    const permalink = decodePermalink()
-    if (permalink && permalink.code) {
-      setCode(permalink.code)
-      if (permalink.language) setSelectedLanguage(permalink.language)
-      setIsDirty(true)
-    }
-  }, [])
-
-  const ensureCompiled = () => {
-    if (!isDirty && runtimeRef.current) {
-      return runtimeRef.current
-    }
-    return compileCode()
-  }
-
-  const findStepByDirection = useCallback((startIndex, direction) => {
-    let cursor = startIndex + direction
-    while (cursor >= 0 && cursor < steps.length) {
-      return cursor
-    }
-    return clamp(cursor, 0, Math.max(0, steps.length - 1))
-  }, [steps])
-
-  const handleRun = (fromIndex = null) => {
-    const result = ensureCompiled()
-    if (!result.ok) {
+    if (currentProblem) {
+      const defaultCode = currentProblem.optimalSolution?.code || currentProblem.bruteForce?.code || ''
+      setCode(defaultCode)
+      setStepIndex(0)
       setIsRunning(false)
-      return
+      // Simulate execution steps for the visualizer
+      try {
+        const fullSource = `${defaultCode}\n// Execution trace`
+        const res = simulateExecution(fullSource, {})
+        if (res?.steps && res.steps.length > 0) {
+          setSteps(res.steps)
+        } else {
+          setSteps([{ event: 'Algorithm Initialized', explanation: 'Ready to run interactive algorithm execution.' }])
+        }
+      } catch (err) {
+        setSteps([{ event: 'Ready', explanation: 'Interactive learning mode ready.' }])
+      }
     }
+  }, [selectedProblemId, currentProblem])
 
-    if (typeof fromIndex === 'number') {
-      setStepIndex(clamp(fromIndex, 0, result.steps.length - 1))
+  // Playback timer for visualizer
+  useEffect(() => {
+    if (!isRunning || steps.length <= 1) return
+    const ms = Math.max(150, Math.floor(1000 / speed))
+    const timer = window.setInterval(() => {
+      setStepIndex((prev) => {
+        if (prev + 1 >= steps.length) {
+          setIsRunning(false)
+          return prev
+        }
+        return prev + 1
+      })
+    }, ms)
+    return () => clearInterval(timer)
+  }, [isRunning, speed, steps.length])
+
+  const handleSelectProblem = (id) => {
+    setSelectedProblemId(id)
+    setActiveTab('visualizer')
+    setCurrentView('problem')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleRun = () => {
+    if (stepIndex >= steps.length - 1) {
+      setStepIndex(0)
     }
     setIsRunning(true)
   }
 
-  const handlePause = () => setIsRunning(false)
-
-  const handleStep = () => {
-    const result = ensureCompiled()
-    if (!result.ok) return
-    setStepIndex((prev) => findStepByDirection(prev, 1))
+  const handleStepForward = () => {
+    setIsRunning(false)
+    setStepIndex((prev) => Math.min(prev + 1, Math.max(0, steps.length - 1)))
   }
 
   const handleStepBack = () => {
-    ensureCompiled()
-    setStepIndex((prev) => findStepByDirection(prev, -1))
+    setIsRunning(false)
+    setStepIndex((prev) => Math.max(0, prev - 1))
   }
 
   const handleReset = () => {
@@ -188,303 +92,149 @@ function App() {
     setStepIndex(0)
   }
 
-  const applyExample = (exampleId, language) => {
-    setIsRunning(false)
-    setLoadingExample(true)
-
-    window.setTimeout(() => {
-      const example = getExampleById(exampleId)
-      setSelectedLanguage(language)
-      setSelectedExample(exampleId)
-      setCode(example.code)
-      setSteps([])
-      setVariableHistoryIndex({})
-      setLoopClusters([])
-      setAstArtifacts({
-        rootId: null,
-        root: null,
-        nodesById: {},
-        lineToNodeIds: {},
-        orderedNodeIds: [],
-      })
-      setComplexityReport(null)
-      setSynchronizationLayer(null)
-      setRuntimeMeta(null)
-      setPointerTags(new Set())
-      setSelectedAstNodeId(null)
-      setStepIndex(0)
-      setError(null)
-      runtimeRef.current = null
-      setSelection(null)
-      setHoverEntity(null)
-      setBookmarks(new Set())
-      setIsDirty(true)
-      setLoadingExample(false)
-    }, 240)
-  }
-
-  const handleLoadExample = (exampleId) => applyExample(exampleId, selectedLanguage)
-
-  const handleLanguageChange = (language) => {
-    const next = getFirstExampleByLanguage(language)
-    if (!next) return
-    applyExample(next.id, language)
-  }
-
-  useEffect(() => {
-    if (!isRunning || steps.length === 0) {
-      return undefined
-    }
-
-    const ms = Math.max(80, 680 / speed)
-    const timer = window.setInterval(() => {
-      setStepIndex((current) => {
-        if (current >= steps.length - 1) {
-          setIsRunning(false)
-          return current
-        }
-
-        const nextPlayable = findStepByDirection(current, 1)
-        const nextStepObj = steps[nextPlayable]
-
-        if (nextStepObj && breakpoints.has(nextStepObj.line) && current !== nextPlayable) {
-          setIsRunning(false)
-          return nextPlayable
-        }
-
-        if (nextPlayable <= current || nextPlayable >= steps.length - 1) {
-          if (nextPlayable >= steps.length - 1) {
-            setIsRunning(false)
-          }
-          return clamp(nextPlayable, 0, steps.length - 1)
-        }
-        return nextPlayable
-      })
-    }, ms)
-
-    return () => window.clearInterval(timer)
-  }, [breakpoints, findStepByDirection, isRunning, speed, steps])
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      const activeTag = document.activeElement?.tagName
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag) || document.activeElement?.classList.contains('inputarea')) {
-        return
-      }
-      if (e.key === ' ' || e.code === 'Space') {
-        e.preventDefault()
-        setIsRunning((prev) => !prev)
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault()
-        handleStep()
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault()
-        handleStepBack()
-      } else if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault()
-        handleReset()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleStep, handleStepBack])
-
-  const selectedEntityId = selection?.entityId || null
-
-  const selectedLifecycleIndices = useMemo(() => {
-    if (!selectedEntityId) return []
-    return (variableHistoryIndex[selectedEntityId] || [])
-      .map((id) => stepIndexById.get(id))
-      .filter((index) => Number.isInteger(index))
-  }, [selectedEntityId, variableHistoryIndex, stepIndexById])
-
-  const hoverLifecycleIndices = useMemo(() => {
-    if (!hoverEntity) return []
-    return (variableHistoryIndex[hoverEntity] || [])
-      .map((id) => stepIndexById.get(id))
-      .filter((index) => Number.isInteger(index))
-  }, [hoverEntity, variableHistoryIndex, stepIndexById])
-
-  const importantIndices = useMemo(
-    () => steps.map((step, index) => (step.isImportant ? index : -1)).filter((index) => index >= 0),
-    [steps],
-  )
-
-  const inspectorContext = useMemo(
-    () => buildInspectorContext(steps, stepIndex, selection),
-    [steps, stepIndex, selection],
-  )
-
-  const onSeekStepById = (id) => {
-    const nextIndex = stepIndexById.get(id)
-    if (nextIndex == null) return
-    setIsRunning(false)
-    setStepIndex(nextIndex)
-  }
-
-  const onSeekByAstNode = (nodeId) => {
-    if (!nodeId) return
-    const stepIds = synchronizationLayer?.nodeToStepIds?.[nodeId]
-    if (!stepIds?.length) return
-    onSeekStepById(stepIds[0])
-  }
-
-  const onTogglePointerTag = (entityId) => {
-    setPointerTags((previous) => {
-      const next = new Set(previous)
-      if (next.has(entityId)) {
-        next.delete(entityId)
-      } else {
-        next.add(entityId)
-      }
-      return next
-    })
-  }
-
-  const handleToggleBookmark = (index) => {
-    setBookmarks((prev) => {
-      const next = new Set(prev)
-      if (next.has(index)) next.delete(index)
-      else next.add(index)
-      return next
-    })
-  }
-
-  const milestone = useMemo(() => {
-    if (!currentStep) return ''
-    if (currentStep.eventType === 'loop' && currentStep.meta?.condition === false) {
-      return `Milestone: loop completed after ${currentStep.meta.iteration || 0} iterations.`
-    }
-    if (currentStep.eventType === 'return' && currentStep.meta?.functionName) {
-      return `Milestone: ${currentStep.meta.functionName} returned ${currentStep.meta.returnValue}.`
-    }
-    if (currentStep.eventType === 'heap') {
-      return 'Milestone: mutation origin captured.'
-    }
-    if (stepIndex === steps.length - 1 && steps.length > 0) {
-      return 'Milestone: execution reached final state.'
-    }
-    return ''
-  }, [currentStep, stepIndex, steps.length])
-
-  const runtimeBadge = runtimeMeta?.plugin ? ` - runtime ${runtimeMeta.plugin}` : ''
-  const stepMeta = steps.length ? `Step ${stepIndex + 1} of ${steps.length}${runtimeBadge}` : 'Run code to begin.'
-  const editorLanguage = selectedLanguage === 'cpp' ? 'cpp' : selectedLanguage
-
   return (
-    <div className="relative min-h-screen">
-      <main className="mx-auto flex min-h-screen w-full max-w-[1720px] flex-col gap-4 px-4 pb-6 pt-5 lg:px-6">
-        <div className="px-1">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-atlas-muted">CodeInsight</p>
-          <h1 className="font-display text-[30px] font-semibold leading-[1.15]">
-            Atlas: Visual Storytelling Engine for Code
-          </h1>
-          <p className="mt-1 text-sm text-atlas-muted">{stepMeta}</p>
+    <div className="min-h-screen bg-atlas-bg0 text-atlas-text flex flex-col font-sans selection:bg-atlas-brand/30 selection:text-atlas-text">
+      {/* Universal Top Navigation Header */}
+      <header className="sticky top-0 z-50 border-b border-atlas-muted/20 bg-atlas-bg0/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1580px] items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setCurrentView('catalog')}
+              className="flex items-center gap-2.5 text-left group"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-500 text-white shadow-lg shadow-cyan-500/25 transition group-hover:scale-105">
+                <Sparkles size={20} />
+              </div>
+              <div>
+                <span className="text-[11px] uppercase tracking-widest text-atlas-muted block font-semibold">
+                  Visual DSA Platform
+                </span>
+                <span className="font-display text-lg font-bold text-atlas-text group-hover:text-cyan-300 transition">
+                  CodeInsight
+                </span>
+              </div>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setCurrentView('catalog')}
+              className={cn(
+                'inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition',
+                currentView === 'catalog'
+                  ? 'border border-atlas-brand/60 bg-atlas-brand/20 text-atlas-text shadow-sm'
+                  : 'border border-atlas-muted/20 bg-atlas-surface/60 text-atlas-muted hover:bg-atlas-elev hover:text-atlas-text'
+              )}
+            >
+              <LayoutGrid size={14} />
+              <span className="hidden sm:inline">Problem Catalog</span>
+            </button>
+
+            {currentView === 'problem' && currentProblem && (
+              <span className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-3 py-1 text-xs font-mono text-emerald-300">
+                <span>Learning:</span>
+                <strong className="font-bold">{currentProblem.title}</strong>
+              </span>
+            )}
+          </div>
         </div>
+      </header>
 
-        <AtlasCommandRail
-          isRunning={isRunning}
-          canRun={code.trim().length > 0}
-          speed={speed}
-          onRun={() => handleRun()}
-          onPause={handlePause}
-          onStep={handleStep}
-          onStepBack={handleStepBack}
-          onReset={handleReset}
-          onSpeedChange={setSpeed}
-          view={view}
-          onViewChange={setView}
-          selectedLanguage={selectedLanguage}
-          languages={supportedLanguages}
-          onLanguageChange={handleLanguageChange}
-          selectedExample={selectedExample}
-          examples={filteredExamples}
-          onLoadExample={handleLoadExample}
-          breakpoints={breakpoints}
-          watchlist={watchlist}
-        />
+      {/* Main Container */}
+      <main className="flex-1">
+        <AnimatePresence mode="wait">
+          {currentView === 'catalog' ? (
+            <motion.div
+              key="catalog"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+            >
+              <DSACatalogHome onSelectProblem={handleSelectProblem} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="problem"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+              className="mx-auto max-w-[1580px] px-4 py-6 sm:px-6 lg:px-8 space-y-6"
+            >
+              {/* Problem Top Header */}
+              <DSAProblemHeader
+                problem={currentProblem}
+                onBackToCatalog={() => setCurrentView('catalog')}
+              />
 
-        <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_370px]">
-          <AtlasSceneCanvas
-            view={view}
-            code={code}
-            onCodeChange={(value) => {
-              setCode(value)
-              setIsDirty(true)
-              setIsRunning(false)
-              setError(null)
-            }}
-            language={selectedLanguage}
-            loadingExample={loadingExample}
-            currentStep={currentStep}
-            previousStep={previousStep}
-            nextStep={nextStep}
-            selectedEntity={selectedEntityId}
-            hoverEntity={hoverEntity}
-            pointerTags={pointerTags}
+              {/* Navigation Tabs */}
+              <DSATabNavigation
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+              />
 
-            astArtifacts={astArtifacts}
-            complexityReport={complexityReport}
-            selectedAstNodeId={selectedAstNodeId}
-            onSelectAstNode={setSelectedAstNodeId}
-            onSeekByAstNode={onSeekByAstNode}
-            onClearAstSelection={() => setSelectedAstNodeId(null)}
-            onTogglePointerTag={onTogglePointerTag}
-            onSelectEntity={setSelection}
-            onHoverEntity={setHoverEntity}
-            breakpoints={breakpoints}
-            onToggleBreakpoint={handleToggleBreakpoint}
-          />
+              {/* Active Tab View */}
+              <div className="min-h-[580px]">
+                {activeTab === 'visualizer' && (
+                  <DSALearningVisualizer
+                    problem={currentProblem}
+                    code={code}
+                    onCodeChange={setCode}
+                    currentStep={steps[stepIndex] || steps[0]}
+                    stepIndex={stepIndex}
+                    steps={steps}
+                    isRunning={isRunning}
+                    onRun={handleRun}
+                    onPause={() => setIsRunning(false)}
+                    onStep={handleStepForward}
+                    onStepBack={handleStepBack}
+                    onReset={handleReset}
+                    speed={speed}
+                    onSpeedChange={setSpeed}
+                  />
+                )}
 
-          <AtlasNarrativeDock
-            currentStep={currentStep}
-            stepIndex={stepIndex}
-            totalSteps={steps.length}
-            selected={selection}
-            inspectorContext={inspectorContext}
-            steps={steps}
-            onSeekStep={onSeekStepById}
-            onClearSelection={() => setSelection(null)}
-            milestone={milestone}
-            watchlist={watchlist}
-            onToggleWatchlist={handleToggleWatchlist}
-          />
-        </div>
+                {activeTab === 'optimization' && (
+                  <DSAOptimizationCoach problem={currentProblem} />
+                )}
 
-        <AtlasTimeRail
-          steps={steps}
-          currentIndex={stepIndex}
-          onSeek={(index) => {
-            setIsRunning(false)
-            setStepIndex(index)
-          }}
-          onReplayFrom={(index) => handleRun(index)}
-          bookmarks={bookmarks}
-          onToggleBookmark={handleToggleBookmark}
-          loopClusters={loopClusters}
-          lifecycleIndices={selectedLifecycleIndices}
-          hoverLifecycleIndices={hoverLifecycleIndices}
-          importantIndices={importantIndices}
-        />
+                {activeTab === 'complexity' && (
+                  <DSAVisualComplexityCoach problem={currentProblem} />
+                )}
+
+                {activeTab === 'compare' && (
+                  <DSACompareSolutions problem={currentProblem} />
+                )}
+
+                {activeTab === 'dashboard' && (
+                  <DSAComplexityDashboard
+                    problem={currentProblem}
+                    stepIndex={stepIndex}
+                    steps={steps}
+                  />
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
-      <AtlasInspectorOrb selected={selection} inspectorContext={inspectorContext} onSeekStep={onSeekStepById} />
-
-      <AnimatePresence>
-        {error ? (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 12 }}
-            className="fixed bottom-6 left-1/2 z-50 w-[min(680px,90vw)] -translate-x-1/2 rounded-2xl border border-atlas-error/45 bg-atlas-error/20 px-4 py-3 text-sm text-atlas-text"
-          >
-            <p className="font-medium">{buildStepCaption(currentStep, false)}</p>
-            <p className="mt-1 text-xs text-atlas-muted">Error: {error}</p>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      {/* Footer */}
+      <footer className="border-t border-atlas-muted/15 bg-atlas-bg0/90 py-6 mt-12">
+        <div className="mx-auto max-w-[1580px] px-4 text-center text-xs text-atlas-muted sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p>
+            <strong className="text-atlas-text">CodeInsight</strong> — Visual DSA Algorithm Learning & Optimization Platform.
+          </p>
+          <div className="flex items-center gap-4 text-atlas-muted">
+            <span>24 DSA Categories</span>
+            <span>•</span>
+            <span>Interactive Visualizations</span>
+            <span>•</span>
+            <span>Brute Force ➔ Optimal Coach</span>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
-
-export default App
