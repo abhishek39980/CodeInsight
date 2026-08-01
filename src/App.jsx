@@ -134,8 +134,8 @@ function App() {
     if (permalink && permalink.code) {
       setCode(permalink.code)
       if (permalink.language) setSelectedLanguage(permalink.language)
-      setIsDirty(true)
     }
+    compileCode()
   }, [])
 
   const ensureCompiled = () => {
