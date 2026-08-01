@@ -148,6 +148,12 @@ const EditorPanel = ({ code, onCodeChange, activeLine, loadingExample, language,
           theme={EDITOR_THEME}
           beforeMount={handleBeforeMount}
           onMount={handleEditorDidMount}
+          loading={
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2.5 font-mono text-xs text-atlas-muted bg-atlas-bg0/80">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-atlas-brand border-t-transparent" />
+              <span>Initializing Monaco Editor...</span>
+            </div>
+          }
           options={{
             minimap: { enabled: false },
             fontFamily: "'JetBrains Mono', monospace",

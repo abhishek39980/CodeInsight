@@ -18,18 +18,19 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
 
 function App() {
   const initial = getExampleById(defaultExampleId)
-  const runtimeRef = useRef(null)
+  const initialResult = useMemo(() => simulateExecution(initial.code, initial.language), [])
+  const runtimeRef = useRef(initialResult)
 
   const [selectedLanguage, setSelectedLanguage] = useState(initial.language)
   const [selectedExample, setSelectedExample] = useState(initial.id)
   const [code, setCode] = useState(initial.code)
-  const [steps, setSteps] = useState([])
+  const [steps, setSteps] = useState(initialResult.steps || [])
   const [stepIndex, setStepIndex] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [speed, setSpeed] = useState(1)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState(initialResult.error || null)
   const [loadingExample, setLoadingExample] = useState(false)
-  const [isDirty, setIsDirty] = useState(true)
+  const [isDirty, setIsDirty] = useState(false)
   const [selection, setSelection] = useState(null)
   const [hoverEntity, setHoverEntity] = useState(null)
   const [bookmarks, setBookmarks] = useState(new Set())
@@ -38,16 +39,16 @@ function App() {
   const [focusMode, setFocusMode] = useState(false)
   const [beginnerMode, setBeginnerMode] = useState(false)
   const [searchValue, setSearchValue] = useState('')
-  const [variableHistoryIndex, setVariableHistoryIndex] = useState({})
-  const [loopClusters, setLoopClusters] = useState([])
-  const [astArtifacts, setAstArtifacts] = useState({
+  const [variableHistoryIndex, setVariableHistoryIndex] = useState(initialResult.variableHistoryIndex || {})
+  const [loopClusters, setLoopClusters] = useState(initialResult.loopClusters || [])
+  const [astArtifacts, setAstArtifacts] = useState(initialResult.astArtifacts || {
     rootId: null,
     root: null,
     nodesById: {},
     lineToNodeIds: {},
     orderedNodeIds: [],
   })
-  const [complexityReport, setComplexityReport] = useState(null)
+  const [complexityReport, setComplexityReport] = useState(() => buildComplexityReport(initialResult.astArtifacts?.root, initialResult.steps || [], initial.code))
   const [synchronizationLayer, setSynchronizationLayer] = useState(null)
   const [runtimeMeta, setRuntimeMeta] = useState(null)
   const [pointerTags, setPointerTags] = useState(new Set())
