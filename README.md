@@ -9,7 +9,7 @@ The platform focuses on teaching:
 - **How** to optimize from brute force ➔ intermediate ➔ optimal interview solution
 - **When** to recognize algorithmic patterns in technical coding interviews
 
-> **Live Demo:** [codeinsight.vercel.app](https://codeinsight.vercel.app)
+> **Live Demo:** (https://code-insight-one.vercel.app/)
 
 ---
 
