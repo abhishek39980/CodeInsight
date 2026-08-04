@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Sparkles, BookOpen, ArrowRight, CheckCircle2, ChevronRight } from 'lucide-react'
+import { Search, Sparkles, BookOpen, ArrowRight, CheckCircle2, ChevronRight, Compass } from 'lucide-react'
 import { dsaCategories, dsaProblems } from '../../engine/dsaProblems'
 import { cn } from '../../utils/cn'
 
-export default function DSACatalogHome({ onSelectProblem }) {
+export default function DSACatalogHome({ onSelectProblem, onViewRoadmap }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
 
@@ -34,6 +34,17 @@ export default function DSACatalogHome({ onSelectProblem }) {
           <p className="text-base sm:text-lg leading-relaxed text-atlas-muted">
             Understand <strong className="text-atlas-text">how</strong> an algorithm works, <strong className="text-atlas-text">why</strong> it works, where time & space complexity come from, and how to optimize from brute force to the optimal solution.
           </p>
+
+          <div className="pt-2">
+            <button
+              onClick={onViewRoadmap}
+              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/25 transition hover:scale-105"
+            >
+              <Compass size={18} />
+              <span>Explore 120+ Topic Interview Roadmap (221 Topics)</span>
+              <ArrowRight size={16} />
+            </button>
+          </div>
         </div>
       </div>
 

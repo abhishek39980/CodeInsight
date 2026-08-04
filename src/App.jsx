@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, BookOpen, Trophy, ArrowLeft, Terminal, LayoutGrid } from 'lucide-react'
+import { Sparkles, BookOpen, Trophy, ArrowLeft, Terminal, LayoutGrid, Compass } from 'lucide-react'
 import DSACatalogHome from './components/dsa/DSACatalogHome'
+import DSARoadmapView from './components/dsa/DSARoadmapView'
 import DSAProblemHeader from './components/dsa/DSAProblemHeader'
 import DSATabNavigation from './components/dsa/DSATabNavigation'
 import DSALearningVisualizer from './components/dsa/DSALearningVisualizer'
@@ -14,7 +15,7 @@ import { simulateExecution } from './engine/executor'
 import { cn } from './utils/cn'
 
 export default function App() {
-  const [currentView, setCurrentView] = useState('catalog') // 'catalog' | 'problem'
+  const [currentView, setCurrentView] = useState('catalog') // 'catalog' | 'roadmap' | 'problem'
   const [selectedProblemId, setSelectedProblemId] = useState('two-sum')
   const [activeTab, setActiveTab] = useState('visualizer')
   const [code, setCode] = useState('')
@@ -130,6 +131,19 @@ export default function App() {
               <span className="hidden sm:inline">Problem Catalog</span>
             </button>
 
+            <button
+              onClick={() => setCurrentView('roadmap')}
+              className={cn(
+                'inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition',
+                currentView === 'roadmap'
+                  ? 'border border-cyan-500/60 bg-cyan-500/20 text-cyan-300 shadow-sm'
+                  : 'border border-atlas-muted/20 bg-atlas-surface/60 text-atlas-muted hover:bg-atlas-elev hover:text-atlas-text'
+              )}
+            >
+              <Compass size={14} />
+              <span className="hidden sm:inline">120+ Topic Roadmap</span>
+            </button>
+
             {currentView === 'problem' && currentProblem && (
               <span className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-3 py-1 text-xs font-mono text-emerald-300">
                 <span>Learning:</span>
@@ -143,7 +157,7 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1">
         <AnimatePresence mode="wait">
-          {currentView === 'catalog' ? (
+          {currentView === 'catalog' && (
             <motion.div
               key="catalog"
               initial={{ opacity: 0, y: 12 }}
@@ -151,9 +165,23 @@ export default function App() {
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.2 }}
             >
-              <DSACatalogHome onSelectProblem={handleSelectProblem} />
+              <DSACatalogHome onSelectProblem={handleSelectProblem} onViewRoadmap={() => setCurrentView('roadmap')} />
             </motion.div>
-          ) : (
+          )}
+
+          {currentView === 'roadmap' && (
+            <motion.div
+              key="roadmap"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+            >
+              <DSARoadmapView onSelectProblem={handleSelectProblem} />
+            </motion.div>
+          )}
+
+          {currentView === 'problem' && (
             <motion.div
               key="problem"
               initial={{ opacity: 0, y: 12 }}

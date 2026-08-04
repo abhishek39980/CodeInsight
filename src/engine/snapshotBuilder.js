@@ -66,6 +66,7 @@ const snapshotFrame = (frame) => ({
   envId: frame.env?.id || null,
   vars: frame.env.entries().map(([name, raw]) => ({
     name,
+    value: serializePrimitive(raw),
     ...serializeValue(raw),
   })),
 })
