@@ -1,5 +1,6 @@
 import { Component, StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 
@@ -28,10 +29,7 @@ class ErrorBoundary extends Component {
             </p>
             <button
               type="button"
-              onClick={() => {
-                window.location.hash = ''
-                window.location.reload()
-              }}
+              onClick={() => { window.location.pathname = '/'; window.location.reload() }}
               className="mt-4 rounded-xl border border-atlas-brand/50 bg-atlas-brand/20 px-4 py-2 text-xs text-atlas-text hover:bg-atlas-brand/30"
             >
               Reset App State
@@ -40,7 +38,6 @@ class ErrorBoundary extends Component {
         </div>
       )
     }
-
     return this.props.children
   }
 }
@@ -48,7 +45,9 @@ class ErrorBoundary extends Component {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </ErrorBoundary>
   </StrictMode>,
 )

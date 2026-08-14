@@ -17,7 +17,6 @@
   --semantic-mutation: #ff8f5a;
   --semantic-loop: #2fbf8f;
   --semantic-error: #e45454;
-  --semantic-reference: #8f7cff;
   --radius-lg: 18px;
   --radius-md: 14px;
   --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -52,6 +51,10 @@ textarea {
   font: inherit;
 }
 
+/* ============================================================
+   Atlas Surface Utilities
+   ============================================================ */
+
 .atlas-surface {
   border-radius: var(--radius-lg);
   background: linear-gradient(180deg, rgba(35, 44, 56, 0.58) 0%, rgba(27, 34, 44, 0.86) 100%);
@@ -65,6 +68,10 @@ textarea {
   background: linear-gradient(180deg, rgba(35, 44, 56, 0.7) 0%, rgba(27, 34, 44, 0.9) 100%);
   box-shadow: var(--edge-light), 0 10px 26px rgba(7, 12, 20, 0.24);
 }
+
+/* ============================================================
+   Code / Editor Line Highlights
+   ============================================================ */
 
 .atlas-active-line {
   border-left: 2px solid rgba(76, 125, 255, 0.95);
@@ -100,6 +107,10 @@ textarea {
   box-shadow: 0 0 10px #ff4d4d;
 }
 
+/* ============================================================
+   Custom Scrollbar
+   ============================================================ */
+
 .atlas-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(154, 167, 183, 0.5) transparent;
@@ -118,6 +129,100 @@ textarea {
 .atlas-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* ============================================================
+   Skeleton / Loading States
+   ============================================================ */
+
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(35, 44, 56, 0.6) 0%,
+    rgba(54, 68, 86, 0.8) 50%,
+    rgba(35, 44, 56, 0.6) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+  border-radius: 8px;
+}
+
+/* ============================================================
+   Float / Pulse Animations
+   ============================================================ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(76, 125, 255, 0); }
+  50%       { box-shadow: 0 0 0 8px rgba(76, 125, 255, 0.12); }
+}
+
+@keyframes sweep-line {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  40%  { opacity: 1; }
+  100% { transform: translateX(200%); opacity: 0; }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+/* ============================================================
+   Glassmorphism Card
+   ============================================================ */
+
+.glass-card {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(27, 34, 44, 0.7);
+  border: 1px solid rgba(154, 167, 183, 0.12);
+}
+
+/* ============================================================
+   Keyboard Shortcut Badge
+   ============================================================ */
+
+kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.1rem 0.35rem;
+  border-radius: 5px;
+  border: 1px solid rgba(154, 167, 183, 0.3);
+  background: rgba(35, 44, 56, 0.8);
+  color: #eaf0f8;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   Confetti canvas cleanup
+   ============================================================ */
+
+canvas[data-confetti] {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* ============================================================
+   Reduced Motion
+   ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -1,28 +1,29 @@
 import { cn } from '../../utils/cn'
 
 const tabs = [
-  { id: 'visualizer', label: '🎬 Algorithm Visualizer & Learning Mode' },
-  { id: 'optimization', label: '💡 Optimization & Pattern Coach' },
-  { id: 'complexity', label: '📈 Visual Complexity & Space Coach' },
-  { id: 'compare', label: '⚔️ Compare Solutions' },
-  { id: 'dashboard', label: '📊 Complexity Dashboard' },
+  { id: 'visualizer',   label: 'Visualizer' },
+  { id: 'optimization', label: 'Optimization' },
+  { id: 'complexity',   label: 'Complexity' },
+  { id: 'compare',      label: 'Compare' },
+  { id: 'dashboard',    label: 'Dashboard' },
 ]
 
 export default function DSATabNavigation({ activeTab, onTabChange }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-atlas-muted/25 bg-atlas-surface/80 p-2">
+    <div className="flex items-center gap-0.5 border-b border-atlas-muted/15">
       {tabs.map((t) => (
         <button
           key={t.id}
+          id={`tab-${t.id}`}
           onClick={() => onTabChange(t.id)}
           className={cn(
-            'rounded-xl px-4 py-2.5 text-xs font-semibold transition flex items-center gap-2',
+            'px-4 py-2.5 text-xs font-medium transition border-b-2 -mb-px',
             activeTab === t.id
-              ? 'border border-atlas-brand/60 bg-atlas-brand/25 text-atlas-text shadow-md'
-              : 'border border-transparent text-atlas-muted hover:bg-atlas-elev hover:text-atlas-text'
+              ? 'border-atlas-brand text-atlas-text'
+              : 'border-transparent text-atlas-muted hover:text-atlas-text'
           )}
         >
-          <span>{t.label}</span>
+          {t.label}
         </button>
       ))}
     </div>
