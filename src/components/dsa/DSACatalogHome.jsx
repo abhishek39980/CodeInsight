@@ -57,9 +57,6 @@ export default function DSACatalogHome({ onSelectProblem, onViewRoadmap }) {
             Topic Roadmap
             <ArrowRight size={14} />
           </button>
-          {solved > 0 && (
-            <span className="text-sm text-atlas-muted">{solved} of {dsaProblems.length} solved</span>
-          )}
         </div>
       </div>
 

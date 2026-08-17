@@ -8,6 +8,9 @@ import DSAOptimizationCoach from '../components/dsa/DSAOptimizationCoach'
 import DSAVisualComplexityCoach from '../components/dsa/DSAVisualComplexityCoach'
 import DSACompareSolutions from '../components/dsa/DSACompareSolutions'
 import DSAComplexityDashboard from '../components/dsa/DSAComplexityDashboard'
+import DSAMemoryProfiler from '../components/dsa/DSAMemoryProfiler'
+import DSADynamicProgrammingVisualizer from '../components/dsa/DSADynamicProgrammingVisualizer'
+import PathfindingVisualizer from '../components/dsa/PathfindingVisualizer'
 import { getProblemById } from '../engine/dsaProblems'
 import { simulateExecution } from '../engine/executor'
 import { useProgressStore } from '../store/useProgressStore'
@@ -227,6 +230,21 @@ export default function ProblemView() {
           {activeTab === 'dashboard' && (
             <motion.div key="dash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <DSAComplexityDashboard problem={problem} stepIndex={stepIndex} steps={steps} />
+            </motion.div>
+          )}
+          {activeTab === 'memory' && (
+            <motion.div key="mem" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <DSAMemoryProfiler problem={problem} />
+            </motion.div>
+          )}
+          {activeTab === 'dp-matrix' && (
+            <motion.div key="dp" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <DSADynamicProgrammingVisualizer />
+            </motion.div>
+          )}
+          {activeTab === 'pathfinding' && (
+            <motion.div key="path" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <PathfindingVisualizer />
             </motion.div>
           )}
         </AnimatePresence>

@@ -1,11 +1,11 @@
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { LayoutGrid, Compass, BarChart3 } from 'lucide-react'
+import { LayoutGrid, Compass, BarChart3, Server } from 'lucide-react'
 import DSACatalogHome from './components/dsa/DSACatalogHome'
 import DSARoadmapView from './components/dsa/DSARoadmapView'
 import ProgressDashboard from './components/ProgressDashboard'
 import ProblemView from './views/ProblemView'
-import { useProgressStore } from './store/useProgressStore'
+import SystemDesignLabView from './views/SystemDesignLabView'
 import { cn } from './utils/cn'
 
 function NavLink({ to, icon, label, exact = false }) {
@@ -30,8 +30,6 @@ function NavLink({ to, icon, label, exact = false }) {
 export default function App() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { xp, streak, getSolvedCount } = useProgressStore()
-  const solved = getSolvedCount()
 
   return (
     <div className="min-h-screen bg-atlas-bg0 text-atlas-text flex flex-col font-sans selection:bg-atlas-brand/20 selection:text-atlas-text">
@@ -52,41 +50,33 @@ export default function App() {
           <nav className="flex items-center gap-0.5">
             <NavLink to="/" icon={<LayoutGrid size={13} />} label="Problems" exact />
             <NavLink to="/roadmap" icon={<Compass size={13} />} label="Roadmap" />
+            <NavLink to="/system-design" icon={<Server size={13} />} label="System Design" />
             <NavLink to="/progress" icon={<BarChart3 size={13} />} label="Progress" />
           </nav>
-
-          {/* Minimal stats */}
-          <div className="flex items-center gap-3 text-xs text-atlas-muted font-mono">
-            {solved > 0 && <span>{solved} solved</span>}
-            {streak > 0 && <span>{streak}d streak</span>}
-            <span className="text-atlas-brand">{xp} xp</span>
-          </div>
         </div>
       </header>
 
       {/* Main */}
       <main className="flex-1">
-        <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
-            <Route path="/" element={
-              <motion.div key="catalog" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                <DSACatalogHome onSelectProblem={(id) => navigate(`/problem/${id}`)} onViewRoadmap={() => navigate('/roadmap')} />
-              </motion.div>
-            } />
-            <Route path="/roadmap" element={
-              <motion.div key="roadmap" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                <DSARoadmapView onSelectProblem={(id) => navigate(`/problem/${id}`)} />
-              </motion.div>
-            } />
-            <Route path="/progress" element={
-              <motion.div key="progress" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                <ProgressDashboard />
-              </motion.div>
-            } />
-            <Route path="/problem/:problemId" element={<ProblemView />} />
-            <Route path="/problem/:problemId/:tab" element={<ProblemView />} />
-          </Routes>
-        </AnimatePresence>
+        <Routes>
+          <Route path="/" element={
+            <DSACatalogHome onSelectProblem={(id) => navigate(`/problem/${id}`)} onViewRoadmap={() => navigate('/roadmap')} />
+          } />
+          <Route path="/roadmap" element={
+            <DSARoadmapView onSelectProblem={(id) => navigate(`/problem/${id}`)} />
+          } />
+          <Route path="/system-design" element={
+            <SystemDesignLabView />
+          } />
+          <Route path="/system-design/:lab" element={
+            <SystemDesignLabView />
+          } />
+          <Route path="/progress" element={
+            <ProgressDashboard />
+          } />
+          <Route path="/problem/:problemId" element={<ProblemView />} />
+          <Route path="/problem/:problemId/:tab" element={<ProblemView />} />
+        </Routes>
       </main>
 
       {/* Footer */}

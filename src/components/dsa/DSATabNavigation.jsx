@@ -6,6 +6,9 @@ const tabs = [
   { id: 'complexity',   label: 'Complexity' },
   { id: 'compare',      label: 'Compare' },
   { id: 'dashboard',    label: 'Dashboard' },
+  { id: 'memory',       label: 'Memory & Stack' },
+  { id: 'dp-matrix',    label: '2D DP Matrix' },
+  { id: 'pathfinding',  label: 'Pathfinding Lab' },
 ]
 
 export default function DSATabNavigation({ activeTab, onTabChange }) {
