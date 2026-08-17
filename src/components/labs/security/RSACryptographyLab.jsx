@@ -110,7 +110,7 @@ export default function RSACryptographyLab() {
           </div>
           <h3 className="mt-1 text-xl font-bold text-atlas-text">Public-Key RSA Cryptography Lab</h3>
           <p className="text-xs text-atlas-muted mt-0.5 max-w-2xl">
-            Simulates the mathematics of RSA public-key encryption: prime generation ($p, q \to N, \phi$), public key encryption ($C = M^e \bmod N$), and private key decryption ($M = C^d \bmod N$).
+            Simulates the mathematics of RSA public-key encryption: prime generation (p, q → N, φ), public key encryption (C = M^e mod N), and private key decryption (M = C^d mod N).
           </p>
         </div>
 
@@ -228,7 +228,7 @@ export default function RSACryptographyLab() {
                 <span>The Mathematical Trapdoor Function:</span>
               </div>
               <p className="text-[11px] leading-relaxed">
-                RSA security relies on the <strong>prime factorization hardness problem</strong>. Multiplying two large primes $N = p \times q$ is instantaneous ($\mathcal{O}(1)$), but computing $p$ and $q$ from $N$ alone takes exponential time with classical computers.
+                RSA security relies on the <strong>prime factorization hardness problem</strong>. Multiplying two large primes N = p × q is instantaneous (O(1)), but computing p and q from N alone takes exponential time with classical computers.
               </p>
             </div>
           </div>

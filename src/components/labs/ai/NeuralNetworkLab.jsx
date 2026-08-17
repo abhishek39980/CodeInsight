@@ -83,7 +83,7 @@ export default function NeuralNetworkLab() {
           </div>
           <h3 className="mt-1 text-xl font-bold text-atlas-text">Neural Network Forward Propagation & Activations</h3>
           <p className="text-xs text-atlas-muted mt-0.5 max-w-2xl">
-            Tune inputs, synaptic connection weights ($W$), biases ($b$), and non-linear activation functions ($\text{ReLU}, \sigma$) to watch tensor signal propagation in real time.
+            Tune inputs, synaptic connection weights (W), biases (b), and non-linear activation functions (ReLU, Sigmoid, Tanh) to watch tensor signal propagation in real time.
           </p>
         </div>
 
@@ -108,7 +108,7 @@ export default function NeuralNetworkLab() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           {/* Activation Function Switcher */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-atlas-muted font-medium">Activation Function $\sigma(z)$:</span>
+            <span className="text-xs text-atlas-muted font-medium">Activation Function σ(z):</span>
             <div className="flex items-center gap-1">
               {[
                 { id: 'relu', label: 'ReLU (max(0,z))' },

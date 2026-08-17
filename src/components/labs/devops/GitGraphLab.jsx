@@ -176,7 +176,7 @@ export default function GitGraphLab() {
                 <span>How Git Branches Actually Work:</span>
               </div>
               <p className="text-[11px] leading-relaxed">
-                In Git, a branch is not a container of files—it is simply a lightweight 41-byte text file containing the 40-character SHA hash of its latest commit. Creating a branch is instantaneous ($\mathcal{O}(1)$).
+                In Git, a branch is not a container of files—it is simply a lightweight 41-byte text file containing the 40-character SHA hash of its latest commit. Creating a branch is instantaneous (O(1)).
               </p>
             </div>
           </div>

@@ -231,7 +231,7 @@ export default function BTreeIndexLab() {
           </div>
           <h3 className="mt-1 text-xl font-bold text-atlas-text">B-Tree Database Index & Disk Page Traversal</h3>
           <p className="text-xs text-atlas-muted mt-0.5 max-w-2xl">
-            Simulates self-balancing B-Tree disk page blocks (PostgreSQL / MySQL InnoDB style). Demonstrates how large fanouts reduce disk I/O to $\mathcal{O}(\log_M N)$ reads.
+            Simulates self-balancing B-Tree disk page blocks (PostgreSQL / MySQL InnoDB style). Demonstrates how large fanouts reduce disk I/O to O(log_M N) reads.
           </p>
         </div>
 
@@ -380,7 +380,7 @@ export default function BTreeIndexLab() {
                 <span>Why Databases Use B-Trees over Binary Search Trees (BST):</span>
               </div>
               <p className="text-[11px] leading-relaxed">
-                Binary trees have a fanout of 2, requiring deep levels and hundreds of separate random disk seeks. A <strong>B-Tree</strong> stores thousands of keys per page block (fanout $M \approx 1000$), allowing databases to search billions of rows in only <strong>3 to 4 disk page reads</strong>.
+                Binary trees have a fanout of 2, requiring deep levels and hundreds of separate random disk seeks. A <strong>B-Tree</strong> stores thousands of keys per page block (fanout M ≈ 1000), allowing databases to search billions of rows in only <strong>3 to 4 disk page reads</strong>.
               </p>
             </div>
           </div>
